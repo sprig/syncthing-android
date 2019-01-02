@@ -808,21 +808,22 @@ public class RestApi {
     /**
      * Event triggered by {@link RunConditionMonitor} routed here through {@link SyncthingService}.
      */
-    public void onSyncPreconditionChanged(RunConditionMonitor runConditionMonitor) {
-        Log.v(TAG, "onSyncPreconditionChanged: Event fired.");
+    public void applyCustomRunConditions(RunConditionMonitor runConditionMonitor) {
+        Log.v(TAG, "applyCustomRunConditions: Event fired.");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
         synchronized (mConfigLock) {
             Boolean configChanged = false;
 
             // Check if the config has been loaded.
             if (mConfig == null) {
-                Log.d(TAG, "onSyncPreconditionChanged: mConfig is not ready yet.");
+                Log.d(TAG, "applyCustomRunConditions: mConfig is not ready yet.");
                 return;
             }
 
             // Check if the folders are available from config.
             if (mConfig.folders != null) {
                 for (Folder folder : mConfig.folders) {
+                    // Log.v(TAG, "applyCustomRunConditions: Processing config of folder(" + folder.label + ")");
                     Boolean folderCustomSyncConditionsEnabled = sharedPreferences.getBoolean(
                         Constants.DYN_PREF_OBJECT_CUSTOM_SYNC_CONDITIONS(Constants.PREF_OBJECT_PREFIX_FOLDER + folder.id), false
                     );
@@ -830,22 +831,23 @@ public class RestApi {
                         Boolean syncConditionsMet = runConditionMonitor.checkObjectSyncConditions(
                             Constants.PREF_OBJECT_PREFIX_FOLDER + folder.id
                         );
-                        Log.v(TAG, "onSyncPreconditionChanged: syncFolder(" + folder.id + ")=" + (syncConditionsMet ? "1" : "0"));
+                        Log.v(TAG, "applyCustomRunConditions: f(" + folder.label + ")=" + (syncConditionsMet ? "1" : "0"));
                         if (folder.paused != !syncConditionsMet) {
                             folder.paused = !syncConditionsMet;
-                            Log.d(TAG, "onSyncPreconditionChanged: syncFolder(" + folder.id + ")=" + (syncConditionsMet ? ">1" : ">0"));
+                            Log.d(TAG, "applyCustomRunConditions: f(" + folder.label + ")=" + (syncConditionsMet ? ">1" : ">0"));
                             configChanged = true;
                         }
                     }
                 }
             } else {
-                Log.d(TAG, "onSyncPreconditionChanged: mConfig.folders is not ready yet.");
+                Log.d(TAG, "applyCustomRunConditions: mConfig.folders is not ready yet.");
                 return;
             }
 
             // Check if the devices are available from config.
             if (mConfig.devices != null) {
                 for (Device device : mConfig.devices) {
+                    // Log.v(TAG, "applyCustomRunConditions: Processing config of device(" + device.name + ")");
                     Boolean deviceCustomSyncConditionsEnabled = sharedPreferences.getBoolean(
                         Constants.DYN_PREF_OBJECT_CUSTOM_SYNC_CONDITIONS(Constants.PREF_OBJECT_PREFIX_DEVICE + device.deviceID), false
                     );
@@ -853,21 +855,21 @@ public class RestApi {
                         Boolean syncConditionsMet = runConditionMonitor.checkObjectSyncConditions(
                             Constants.PREF_OBJECT_PREFIX_DEVICE + device.deviceID
                         );
-                        Log.v(TAG, "onSyncPreconditionChanged: syncDevice(" + device.deviceID + ")=" + (syncConditionsMet ? "1" : "0"));
+                        Log.v(TAG, "applyCustomRunConditions: d(" + device.name + ")=" + (syncConditionsMet ? "1" : "0"));
                         if (device.paused != !syncConditionsMet) {
                             device.paused = !syncConditionsMet;
-                            Log.d(TAG, "onSyncPreconditionChanged: syncDevice(" + device.deviceID + ")=" + (syncConditionsMet ? ">1" : ">0"));
+                            Log.d(TAG, "applyCustomRunConditions: d(" + device.name + ")=" + (syncConditionsMet ? ">1" : ">0"));
                             configChanged = true;
                         }
                     }
                 }
             } else {
-                Log.d(TAG, "onSyncPreconditionChanged: mConfig.devices is not ready yet.");
+                Log.d(TAG, "applyCustomRunConditions: mConfig.devices is not ready yet.");
                 return;
             }
 
             if (configChanged) {
-                Log.v(TAG, "onSyncPreconditionChanged: Sending changed config ...");
+                Log.v(TAG, "applyCustomRunConditions: Sending changed config ...");
                 sendConfig();
             }
         }
