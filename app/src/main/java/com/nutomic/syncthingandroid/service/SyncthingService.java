@@ -579,9 +579,6 @@ public class SyncthingService extends Service {
             }
             onServiceStateChange(State.ACTIVE);
         }
-        if (mRestApi != null && mRunConditionMonitor != null) {
-            mRestApi.applyCustomRunConditions(mRunConditionMonitor);
-        }
 
         /**
          * If the service instance got an onDestroy() event while being in
