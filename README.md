@@ -3,6 +3,7 @@
 [![License: MPLv2](https://img.shields.io/badge/License-MPLv2-blue.svg)](https://opensource.org/licenses/MPL-2.0)
 <a href="https://github.com/Catfriend1/syncthing-android/releases" alt="GitHub release"><img src="https://img.shields.io/github/release/Catfriend1/syncthing-android/all.svg" /></a>
 <a href="https://f-droid.org/de/packages/com.github.catfriend1.syncthingandroid" alt="F-Droid release"><img src="https://img.shields.io/f-droid/v/com.github.catfriend1.syncthingandroid.svg" /></a>
+<a href="https://play.google.com/store/apps/details?id=com.github.catfriend1.syncthingandroid" alt="G-Play release"><img src="https://img.shields.io/badge/g--play-1.0.0.1-blue.svg" /></a>
 
 # Major enhancements in this fork are:
 - Individual sync conditions can be applied per device and per folder (for expert users).
@@ -17,8 +18,8 @@ A wrapper of [Syncthing](https://github.com/syncthing/syncthing) for Android. He
 
 <img src="app/src/main/play/en-GB/listing/phoneScreenshots/screenshot_phone_12.png" alt="screenshot 1" width="200" /> <img src="app/src/main/play/en-GB/listing/phoneScreenshots/screenshot_phone_11.png" alt="screenshot 2" width="200" /> <img src="app/src/main/play/en-GB/listing/phoneScreenshots/screenshot_phone_09.png" alt="screenshot 3" width="200" />
 
-# Please participate in quality assurance testing
-See https://github.com/Catfriend1/syncthing-android/issues/122 for more details and QA builds.
+# Privacy Policy
+See our document on privacy: [privacy-policy.md](https://github.com/Catfriend1/syncthing-android/blob/master/privacy-policy.md).
 
 # Goal of the forked version
 - Develop and try out enhancements together
