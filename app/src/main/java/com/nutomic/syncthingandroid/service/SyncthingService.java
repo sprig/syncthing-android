@@ -262,19 +262,6 @@ public class SyncthingService extends Service {
             return START_NOT_STICKY;
         }
 
-        /**
-         * Send current service state to listening endpoints.
-         * This is required that components know about the service State.DISABLED
-         * if RunConditionMonitor does not send a "shouldRun = true" callback
-         * to start the binary according to preferences shortly after its creation.
-         * See {@link mLastDeterminedShouldRun} defaulting to "false".
-         */
-        if (mCurrentState == State.DISABLED) {
-            synchronized (mStateLock) {
-                onServiceStateChange(mCurrentState);
-            }
-        }
-
         if (mPrefBroadcastServiceControl) {
             Log.i(TAG, "onStartCommand: mPrefBroadcastServiceControl == true, RunConditionMonitor is disabled.");
             /**
@@ -713,8 +700,10 @@ public class SyncthingService extends Service {
      * @see #unregisterOnServiceStateChangeListener
      */
     public void registerOnServiceStateChangeListener(OnServiceStateChangeListener listener) {
-        // Make sure we don't send an invalid state or syncthing might show a "disabled" message
-        // when it's just starting up.
+        /**
+         * Initially send the current state to the new subscriber to make sure it doesn't stay
+         * in undefined state forever until the state next change occurs.
+         */
         listener.onServiceStateChange(mCurrentState);
         mOnServiceStateChangeListeners.add(listener);
     }
@@ -732,6 +721,10 @@ public class SyncthingService extends Service {
      * Called to notify listeners of an API change.
      */
     private void onServiceStateChange(State newState) {
+        if (newState == mCurrentState) {
+            Log.d(TAG, "onServiceStateChange: Called with unchanged state " + newState);
+            return;
+        }
         Log.i(TAG, "onServiceStateChange: from " + mCurrentState + " to " + newState);
         mCurrentState = newState;
         mHandler.post(() -> {
