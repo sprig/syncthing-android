@@ -169,7 +169,7 @@ public class RestApi {
      * Gets local device ID, syncthing version and config, then calls all OnApiAvailableListeners.
      */
     public void readConfigFromRestApi() {
-        Log.d(TAG, "Reading config from REST ...");
+        LogV("Querying config from REST ...");
         synchronized (mAsyncQueryCompleteLock) {
             asyncQueryVersionComplete = false;
             asyncQueryConfigComplete = false;
