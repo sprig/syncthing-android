@@ -821,7 +821,7 @@ public class RestApi {
             // Check if the folders are available from config.
             if (mConfig.folders != null) {
                 for (Folder folder : mConfig.folders) {
-                    // Log.v(TAG, "applyCustomRunConditions: Processing config of folder(" + folder.label + ")");
+                    // LogV("applyCustomRunConditions: Processing config of folder(" + folder.label + ")");
                     Boolean folderCustomSyncConditionsEnabled = sharedPreferences.getBoolean(
                         Constants.DYN_PREF_OBJECT_CUSTOM_SYNC_CONDITIONS(Constants.PREF_OBJECT_PREFIX_FOLDER + folder.id), false
                     );
@@ -829,7 +829,7 @@ public class RestApi {
                         Boolean syncConditionsMet = runConditionMonitor.checkObjectSyncConditions(
                             Constants.PREF_OBJECT_PREFIX_FOLDER + folder.id
                         );
-                        Log.v(TAG, "applyCustomRunConditions: f(" + folder.label + ")=" + (syncConditionsMet ? "1" : "0"));
+                        LogV("applyCustomRunConditions: f(" + folder.label + ")=" + (syncConditionsMet ? "1" : "0"));
                         if (folder.paused != !syncConditionsMet) {
                             folder.paused = !syncConditionsMet;
                             Log.d(TAG, "applyCustomRunConditions: f(" + folder.label + ")=" + (syncConditionsMet ? ">1" : ">0"));
@@ -845,7 +845,7 @@ public class RestApi {
             // Check if the devices are available from config.
             if (mConfig.devices != null) {
                 for (Device device : mConfig.devices) {
-                    // Log.v(TAG, "applyCustomRunConditions: Processing config of device(" + device.name + ")");
+                    // LogV("applyCustomRunConditions: Processing config of device(" + device.name + ")");
                     Boolean deviceCustomSyncConditionsEnabled = sharedPreferences.getBoolean(
                         Constants.DYN_PREF_OBJECT_CUSTOM_SYNC_CONDITIONS(Constants.PREF_OBJECT_PREFIX_DEVICE + device.deviceID), false
                     );
@@ -853,7 +853,7 @@ public class RestApi {
                         Boolean syncConditionsMet = runConditionMonitor.checkObjectSyncConditions(
                             Constants.PREF_OBJECT_PREFIX_DEVICE + device.deviceID
                         );
-                        Log.v(TAG, "applyCustomRunConditions: d(" + device.name + ")=" + (syncConditionsMet ? "1" : "0"));
+                        LogV("applyCustomRunConditions: d(" + device.name + ")=" + (syncConditionsMet ? "1" : "0"));
                         if (device.paused != !syncConditionsMet) {
                             device.paused = !syncConditionsMet;
                             Log.d(TAG, "applyCustomRunConditions: d(" + device.name + ")=" + (syncConditionsMet ? ">1" : ">0"));
@@ -867,7 +867,7 @@ public class RestApi {
             }
 
             if (configChanged) {
-                Log.v(TAG, "applyCustomRunConditions: Sending changed config ...");
+                LogV("applyCustomRunConditions: Sending changed config ...");
                 sendConfig();
             }
         }
