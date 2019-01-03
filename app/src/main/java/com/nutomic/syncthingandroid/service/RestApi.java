@@ -178,7 +178,6 @@ public class RestApi {
         new GetRequest(mContext, mUrl, GetRequest.URI_VERSION, mApiKey, null, result -> {
             JsonObject json = new JsonParser().parse(result).getAsJsonObject();
             mVersion = json.get("version").getAsString();
-            Log.i(TAG, "Syncthing version is " + mVersion);
             updateDebugFacilitiesCache();
             synchronized (mAsyncQueryCompleteLock) {
                 asyncQueryVersionComplete = true;
@@ -204,7 +203,8 @@ public class RestApi {
 
     private void checkReadConfigFromRestApiCompleted() {
         if (asyncQueryVersionComplete && asyncQueryConfigComplete && asyncQuerySystemStatusComplete) {
-            Log.d(TAG, "Reading config from REST completed.");
+            LogV("Reading config from REST completed. Syncthing version is " + mVersion);
+            // Tell SyncthingService it can transition to State.ACTIVE.
             mOnApiAvailableListener.onApiAvailable();
         }
     }
