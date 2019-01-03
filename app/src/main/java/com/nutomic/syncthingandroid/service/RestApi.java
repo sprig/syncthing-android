@@ -807,14 +807,13 @@ public class RestApi {
      * Event triggered by {@link RunConditionMonitor} routed here through {@link SyncthingService}.
      */
     public void applyCustomRunConditions(RunConditionMonitor runConditionMonitor) {
-        Log.v(TAG, "applyCustomRunConditions: Event fired.");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
         synchronized (mConfigLock) {
             Boolean configChanged = false;
 
             // Check if the config has been loaded.
             if (mConfig == null) {
-                Log.d(TAG, "applyCustomRunConditions: mConfig is not ready yet.");
+                Log.w(TAG, "applyCustomRunConditions: mConfig is not ready yet.");
                 return;
             }
 
@@ -869,6 +868,8 @@ public class RestApi {
             if (configChanged) {
                 LogV("applyCustomRunConditions: Sending changed config ...");
                 sendConfig();
+            } else {
+                LogV("applyCustomRunConditions: No action was necessary.");
             }
         }
     }
