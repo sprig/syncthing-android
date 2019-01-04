@@ -28,7 +28,7 @@ import com.nutomic.syncthingandroid.SyncthingApp;
 import com.nutomic.syncthingandroid.model.Folder;
 import com.nutomic.syncthingandroid.model.Device;
 import com.nutomic.syncthingandroid.service.ReceiverManager;
-import com.nutomic.syncthingandroid.util.ConfigXml;
+import com.nutomic.syncthingandroid.util.ConfigRouter;
 
 import java.util.HashSet;
 import java.util.List;
@@ -412,16 +412,14 @@ public class RunConditionMonitor {
     }
 
     /**
-     * Reads ConfigXml, returns true if at least one device will unpause when the
+     * Returns true if at least one device will unpause when the
      * SyncthingNative would be started after this check. This checks both devices
      * with "devivceCustomSyncConditionsEnabled == [true|false]" and devices with
      * "deviceCustomSyncConditionsEnabled == false" which are (un)paused manually by the user.
      */
     private Boolean checkIfAtLeastOneDeviceShouldUnpause() {
-        ConfigXml configXml = new ConfigXml(mContext);
-        configXml.loadConfig();
-
-        List<Device> devices = configXml.getDevices(false);
+        ConfigRouter configRouter = new ConfigRouter(mContext);
+        List<Device> devices = configRouter.getDevices(((SyncthingService) mContext).getApi(), false);
         for (Device device : devices) {
             Boolean deviceCustomSyncConditionsEnabled = mPreferences.getBoolean(
                 Constants.DYN_PREF_OBJECT_CUSTOM_SYNC_CONDITIONS(Constants.PREF_OBJECT_PREFIX_DEVICE + device.deviceID), false
