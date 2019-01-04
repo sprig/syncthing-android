@@ -25,7 +25,10 @@ import android.util.Log;
 import com.google.common.collect.Lists;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
+import com.nutomic.syncthingandroid.model.Folder;
+import com.nutomic.syncthingandroid.model.Device;
 import com.nutomic.syncthingandroid.service.ReceiverManager;
+import com.nutomic.syncthingandroid.util.ConfigXml;
 
 import java.util.HashSet;
 import java.util.List;
@@ -409,7 +412,60 @@ public class RunConditionMonitor {
     }
 
     /**
+     * Reads ConfigXml, returns true if at least one object will unpause
+     * when the syncting native would be started after this check.
+     * This checks both objects with "...CustomSyncConditionsEnabled == [true|false]"
+     * Objects with "...CustomSyncConditionsEnabled == false" are controlled manually by the user.
+     */
+    private Boolean checkIfAtLeastOneObjectShouldUnpause() {
+        ConfigXml configXml = new ConfigXml(mContext);
+        configXml.loadConfig();
+
+        List<Folder> folders = configXml.getFolders();
+        for (Folder folder : folders) {
+            Boolean folderCustomSyncConditionsEnabled = mPreferences.getBoolean(
+                Constants.DYN_PREF_OBJECT_CUSTOM_SYNC_CONDITIONS(Constants.PREF_OBJECT_PREFIX_FOLDER + folder.id), false
+            );
+            if (folderCustomSyncConditionsEnabled) {
+                if (checkObjectSyncConditions(Constants.PREF_OBJECT_PREFIX_FOLDER + folder.id)) {
+                    // At least one folder would be unpaused.
+                    return true;
+                }
+            } else {
+                // User chose to manually pause/unpause that folder.
+                if (!folder.paused) {
+                    // At least one folder already is unpaused.
+                    return true;
+                }
+            }
+        }
+
+        List<Device> devices = configXml.getDevices(false);
+        for (Device device : devices) {
+            Boolean deviceCustomSyncConditionsEnabled = mPreferences.getBoolean(
+                Constants.DYN_PREF_OBJECT_CUSTOM_SYNC_CONDITIONS(Constants.PREF_OBJECT_PREFIX_DEVICE + device.deviceID), false
+            );
+            if (deviceCustomSyncConditionsEnabled) {
+                if (checkObjectSyncConditions(Constants.PREF_OBJECT_PREFIX_DEVICE + device.deviceID)) {
+                    // At least one device would be unpaused.
+                    return true;
+                }
+            } else {
+               // User chose to manually pause/unpause that device.
+               if (!device.paused) {
+                   // At least one device already is unpaused.
+                   return true;
+               }
+            }
+        }
+
+        // All folders and devices would be paused.
+        return false;
+    }
+
+    /**
      * Check if an object's individual sync conditions are met.
+     * Precondition: Object must own pref "...CustomSyncConditionsEnabled == true".
      */
     public Boolean checkObjectSyncConditions(String objectPrefixAndId) {
         // Sync on mobile data?
