@@ -371,7 +371,7 @@ public class RunConditionMonitor {
         if (scr.conditionMet) {
             // Mobile data is connected.
             LogV("decideShouldRun: checkConditionSyncOnMobileData");
-            return true;
+            return true && checkIfAtLeastOneObjectShouldUnpause();
         }
 
         // Run on WiFi?
@@ -392,7 +392,7 @@ public class RunConditionMonitor {
                 if (scr.conditionMet) {
                     // Wifi is whitelisted.
                     LogV("decideShouldRun: checkConditionSyncOnWifi && checkConditionSyncOnMeteredWifi && checkConditionSyncOnWhitelistedWifi");
-                    return true;
+                    return true && checkIfAtLeastOneObjectShouldUnpause();
                 }
             }
         }
@@ -401,7 +401,7 @@ public class RunConditionMonitor {
         if (prefRunInFlightMode && isFlightMode()) {
             LogV("decideShouldRun: prefRunInFlightMode && isFlightMode");
             mRunDecisionExplanation += "\n" + res.getString(R.string.reason_on_flight_mode);
-            return true;
+            return true && checkIfAtLeastOneObjectShouldUnpause();
         }
 
         /**
@@ -460,6 +460,7 @@ public class RunConditionMonitor {
         }
 
         // All folders and devices would be paused.
+        Log.d(TAG, "checkIfAtLeastOneObjectShouldUnpause: All objects would pause.");
         return false;
     }
 
