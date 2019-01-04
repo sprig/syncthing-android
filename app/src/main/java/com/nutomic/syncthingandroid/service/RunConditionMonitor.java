@@ -371,7 +371,7 @@ public class RunConditionMonitor {
         if (scr.conditionMet) {
             // Mobile data is connected.
             LogV("decideShouldRun: checkConditionSyncOnMobileData");
-            return true && checkIfAtLeastOneObjectShouldUnpause();
+            return true && checkIfAtLeastOneDeviceShouldUnpause();
         }
 
         // Run on WiFi?
@@ -392,7 +392,7 @@ public class RunConditionMonitor {
                 if (scr.conditionMet) {
                     // Wifi is whitelisted.
                     LogV("decideShouldRun: checkConditionSyncOnWifi && checkConditionSyncOnMeteredWifi && checkConditionSyncOnWhitelistedWifi");
-                    return true && checkIfAtLeastOneObjectShouldUnpause();
+                    return true && checkIfAtLeastOneDeviceShouldUnpause();
                 }
             }
         }
@@ -401,7 +401,7 @@ public class RunConditionMonitor {
         if (prefRunInFlightMode && isFlightMode()) {
             LogV("decideShouldRun: prefRunInFlightMode && isFlightMode");
             mRunDecisionExplanation += "\n" + res.getString(R.string.reason_on_flight_mode);
-            return true && checkIfAtLeastOneObjectShouldUnpause();
+            return true && checkIfAtLeastOneDeviceShouldUnpause();
         }
 
         /**
@@ -412,33 +412,14 @@ public class RunConditionMonitor {
     }
 
     /**
-     * Reads ConfigXml, returns true if at least one object will unpause
-     * when the syncting native would be started after this check.
-     * This checks both objects with "...CustomSyncConditionsEnabled == [true|false]"
-     * Objects with "...CustomSyncConditionsEnabled == false" are controlled manually by the user.
+     * Reads ConfigXml, returns true if at least one device will unpause when the
+     * SyncthingNative would be started after this check. This checks both devices
+     * with "devivceCustomSyncConditionsEnabled == [true|false]" and devices with
+     * "deviceCustomSyncConditionsEnabled == false" which are (un)paused manually by the user.
      */
-    private Boolean checkIfAtLeastOneObjectShouldUnpause() {
+    private Boolean checkIfAtLeastOneDeviceShouldUnpause() {
         ConfigXml configXml = new ConfigXml(mContext);
         configXml.loadConfig();
-
-        List<Folder> folders = configXml.getFolders();
-        for (Folder folder : folders) {
-            Boolean folderCustomSyncConditionsEnabled = mPreferences.getBoolean(
-                Constants.DYN_PREF_OBJECT_CUSTOM_SYNC_CONDITIONS(Constants.PREF_OBJECT_PREFIX_FOLDER + folder.id), false
-            );
-            if (folderCustomSyncConditionsEnabled) {
-                if (checkObjectSyncConditions(Constants.PREF_OBJECT_PREFIX_FOLDER + folder.id)) {
-                    // At least one folder would be unpaused.
-                    return true;
-                }
-            } else {
-                // User chose to manually pause/unpause that folder.
-                if (!folder.paused) {
-                    // At least one folder already is unpaused.
-                    return true;
-                }
-            }
-        }
 
         List<Device> devices = configXml.getDevices(false);
         for (Device device : devices) {
@@ -459,8 +440,8 @@ public class RunConditionMonitor {
             }
         }
 
-        // All folders and devices would be paused.
-        Log.d(TAG, "checkIfAtLeastOneObjectShouldUnpause: All objects would pause.");
+        // All devices would be paused.
+        Log.d(TAG, "checkIfAtLeastOneDeviceShouldUnpause: All devices are paused or would pause.");
         return false;
     }
 
