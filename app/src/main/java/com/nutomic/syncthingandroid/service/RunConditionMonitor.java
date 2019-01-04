@@ -412,27 +412,35 @@ public class RunConditionMonitor {
     }
 
     /**
-     * Returns true if at least one device will unpause when the
-     * SyncthingNative would be started after this check. This checks both devices
-     * with "devivceCustomSyncConditionsEnabled == [true|false]" and devices with
-     * "deviceCustomSyncConditionsEnabled == false" which are (un)paused manually by the user.
+     * Returns TRUE if ...
+     * a) at least one device will unpause when the
+     *      SyncthingNative would be started after this check. This checks both devices
+     *      with "devivceCustomSyncConditionsEnabled == [true|false]" and devices with
+     *      "deviceCustomSyncConditionsEnabled == false" which are (un)paused manually by the user.
+     * b) no devices are in the config. This is a workaround for "fresh setups" to run SyncthingNative
+     *      when WiFi is connected (= default run condition). It makes the "fresh setup" discoverable
+     *      by other devices, e.g. desktop computers or nearby phones running Syncthing.
      */
     private Boolean checkIfAtLeastOneDeviceShouldUnpause() {
         ConfigRouter configRouter = new ConfigRouter(mContext);
         List<Device> devices = configRouter.getDevices(((SyncthingService) mContext).getApi(), false);
+        if (devices.size() == 0) {
+            // Case b) - This setup hasn't got any device added yet.
+            return true;
+        }
         for (Device device : devices) {
             Boolean deviceCustomSyncConditionsEnabled = mPreferences.getBoolean(
                 Constants.DYN_PREF_OBJECT_CUSTOM_SYNC_CONDITIONS(Constants.PREF_OBJECT_PREFIX_DEVICE + device.deviceID), false
             );
             if (deviceCustomSyncConditionsEnabled) {
                 if (checkObjectSyncConditions(Constants.PREF_OBJECT_PREFIX_DEVICE + device.deviceID)) {
-                    // At least one device would be unpaused.
+                    // Case a) - At least one device would be unpaused.
                     return true;
                 }
             } else {
                // User chose to manually pause/unpause that device.
                if (!device.paused) {
-                   // At least one device already is unpaused.
+                   // Case a) - At least one device already is unpaused.
                    return true;
                }
             }
