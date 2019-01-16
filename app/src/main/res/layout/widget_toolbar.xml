@@ -23,6 +23,7 @@
             android:checked="true"
             android:clickable="false"
             android:selectable="false"
+            android:focusable="false"
             android:visibility="gone"
             app:buttonTint="#76ff03"/>
 
@@ -33,6 +34,7 @@
             android:checked="true"
             android:clickable="false"
             android:selectable="false"
+            android:focusable="false"
             android:visibility="gone"
             app:buttonTint="#fff103"/>
 
@@ -43,6 +45,7 @@
             android:checked="true"
             android:clickable="false"
             android:selectable="false"
+            android:focusable="false"
             android:visibility="gone"
             app:buttonTint="#ffae03"/>
 
