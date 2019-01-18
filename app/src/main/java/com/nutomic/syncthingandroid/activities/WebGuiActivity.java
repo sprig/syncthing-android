@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -265,8 +264,8 @@ public class WebGuiActivity extends SyncthingActivity
         properties.setProperty("https.nonProxyHosts", exclusionList);
 
         try {
-            Class applictionCls = Class.forName("android.app.Application");
-            Field loadedApkField = applictionCls.getDeclaredField("mLoadedApk");
+            Class applicationCls = Class.forName("android.app.Application");
+            Field loadedApkField = applicationCls.getDeclaredField("mLoadedApk");
             loadedApkField.setAccessible(true);
             Object loadedApk = loadedApkField.get(appContext);
             Class loadedApkCls = Class.forName("android.app.LoadedApk");

@@ -15,7 +15,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.annimon.stream.Stream;
-import com.nutomic.syncthingandroid.BuildConfig;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
 import com.nutomic.syncthingandroid.activities.DeviceActivity;
@@ -43,7 +42,7 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
 
     /**
      * Minimum interval in seconds at which the events are polled from syncthing and processed.
-     * This intervall will not wake up the device to save battery power.
+     * This interval will not wake up the device to save battery power.
      */
     private static final long EVENT_UPDATE_INTERVAL = TimeUnit.SECONDS.toMillis(15);
 
@@ -132,7 +131,7 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
                 String folderId             = (String) event.data.get("folder");
                 String relativeFilePath     = (String) event.data.get("item");
 
-                // Lookup folder.path for the given folder.id if all fields were containted in the event.data.
+                // Lookup folder.path for the given folder.id if all fields were contained in the event.data.
                 String folderPath = null;
                 if (!TextUtils.isEmpty(action) &&
                         !TextUtils.isEmpty(folderId) &&

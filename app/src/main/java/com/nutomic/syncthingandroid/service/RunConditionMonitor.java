@@ -19,10 +19,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.google.common.collect.Lists;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
 import com.nutomic.syncthingandroid.model.Folder;
@@ -31,7 +29,6 @@ import com.nutomic.syncthingandroid.service.ReceiverManager;
 import com.nutomic.syncthingandroid.util.ConfigRouter;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -39,8 +36,7 @@ import javax.inject.Inject;
 /**
  * Holds information about the current wifi and charging state of the device.
  *
- * This information is actively read on instance creation, and then updated from intents
- * that are passed with {@link #ACTION_DEVICE_STATE_CHANGED}.
+ * This information is actively read on instance creation, and then updated from intents.
  */
 public class RunConditionMonitor {
 
@@ -101,17 +97,17 @@ public class RunConditionMonitor {
     SharedPreferences mPreferences;
 
     /**
-     * Sending callback notifications through {@link #OnShouldRunChangedListener} is enabled if not null.
+     * Sending callback notifications through OnShouldRunChangedListener is enabled if not null.
      */
     private @Nullable OnShouldRunChangedListener mOnShouldRunChangedListener = null;
 
     /**
-     * Sending callback notifications through {@link #OnSyncPreconditionChangedListener} is enabled if not null.
+     * Sending callback notifications through OnSyncPreconditionChangedListener is enabled if not null.
      */
     private @Nullable OnSyncPreconditionChangedListener mOnSyncPreconditionChangedListener = null;
 
     /**
-     * Stores the result of the last call to {@link decideShouldRun}.
+     * Stores the result of the last call to {@link #decideShouldRun}.
      */
     private boolean lastDeterminedShouldRun = false;
 
