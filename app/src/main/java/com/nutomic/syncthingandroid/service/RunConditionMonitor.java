@@ -29,6 +29,7 @@ import com.nutomic.syncthingandroid.service.ReceiverManager;
 import com.nutomic.syncthingandroid.util.ConfigRouter;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
