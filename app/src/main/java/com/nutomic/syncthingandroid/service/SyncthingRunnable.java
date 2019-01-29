@@ -85,6 +85,7 @@ public class SyncthingRunnable implements Runnable {
     public SyncthingRunnable(Context context, Command command) {
         ((SyncthingApp) context.getApplicationContext()).component().inject(this);
         mContext = context;
+        // Example: mSyncthingBinary="/data/app/com.github.catfriend1.syncthingandroid.debug-8HsN-IsVtZXc8GrE5-Hepw==/lib/x86/libsyncthing.so"
         mSyncthingBinary = Constants.getSyncthingBinary(mContext);
         mLogFile = Constants.getLogFile(mContext);
 
@@ -131,12 +132,11 @@ public class SyncthingRunnable implements Runnable {
         trimLogFile();
 
         // Make sure Syncthing is executable
-        try {
-            ProcessBuilder pb = new ProcessBuilder("chmod", "500", mSyncthingBinary.getPath());
-            Process p = pb.start();
-            p.waitFor();
-        } catch (IOException | InterruptedException e) {
-            Log.w(TAG, "Failed to chmod Syncthing", e);
+        exitCode = Util.runShellCommand("chmod 500 " + mSyncthingBinary.getPath(), false);
+        if (exitCode == 1) {
+            LogV("chmod SyncthingNative exited with code 1 [permission denied]. This is expected on Android 5+.");
+        } else if (exitCode > 1) {
+            Log.w(TAG, "chmod SyncthingNative failed with exit code " + Integer.toString(exitCode));
         }
 
         /**
@@ -289,42 +289,26 @@ public class SyncthingRunnable implements Runnable {
      */
     private List<String> getSyncthingPIDs(Boolean enableLog) {
         List<String> syncthingPIDs = new ArrayList<String>();
-        Process ps = null;
-        DataOutputStream psOut = null;
-        BufferedReader br = null;
-        try {
-            ps = Runtime.getRuntime().exec((mUseRoot) ? "su" : "sh");
-            psOut = new DataOutputStream(ps.getOutputStream());
-            psOut.writeBytes("ps\n");
-            psOut.writeBytes("exit\n");
-            psOut.flush();
-            ps.waitFor();
-            br = new BufferedReader(new InputStreamReader(ps.getInputStream(), "UTF-8"));
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.contains(Constants.FILENAME_SYNCTHING_BINARY)) {
-                    String syncthingPID = line.trim().split("\\s+")[1];
-                    if (enableLog) {
-                        Log.v(TAG, "getSyncthingPIDs: Found process PID [" + syncthingPID + "]");
-                    }
-                    syncthingPIDs.add(syncthingPID);
+        String output = Util.runShellCommandGetOutput("ps\n", mUseRoot);
+        if (TextUtils.isEmpty(output)) {
+            Log.w(TAG, "Failed to list SyncthingNative processes. ps command returned empty.");
+            return syncthingPIDs;
+        }
+
+        String lines[] = output.split("\n");
+        if (lines.length == 0) {
+            Log.w(TAG, "Failed to list SyncthingNative processes. ps command returned no rows.");
+            return syncthingPIDs;
+        }
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (line.contains(Constants.FILENAME_SYNCTHING_BINARY)) {
+                String syncthingPID = line.trim().split("\\s+")[1];
+                if (enableLog) {
+                    Log.v(TAG, "getSyncthingPIDs: Found process PID [" + syncthingPID + "]");
                 }
-            }
-        } catch (IOException | InterruptedException e) {
-            Log.w(TAG, "Failed to list Syncthing processes", e);
-        } finally {
-            try {
-                if (br != null) {
-                    br.close();
-                }
-                if (psOut != null) {
-                    psOut.close();
-                }
-            } catch (IOException e) {
-                Log.w(TAG, "Failed to close psOut stream", e);
-            }
-            if (ps != null) {
-                ps.destroy();
+                syncthingPIDs.add(syncthingPID);
             }
         }
         return syncthingPIDs;
