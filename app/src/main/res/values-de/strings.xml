@@ -261,7 +261,10 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <string name="discovered_devices_title">Gefundene Geräte - Tippe zur Auswahl</string>
 
     <!-- Status text -->
-    <string name="discovered_device_list_empty">Die lokale Geräteerkennung hat im lokalen Netzwerk keine Geräte gefunden.</string>
+    <string name="discovered_device_list_empty">Die lokale Geräteerkennung hat im lokalen Netzwerk keine Geräte gefunden. Starte dieses App auf einem zweiten Telefon. Installationsdateien für Computer stehen unter %1$s zur Verfügung.</string>
+
+    <!-- Status text -->
+    <string name="local_discovery_disabled">Du hast die lokale Geräteerkennung unter \'Einstellungen\' > \'Syncthing-Optionen\' > \'Lokale Gerätesuche\' deaktiviert. Aktiviere sie, um im lokalen Netzwerk nach Geräten zu suchen.</string>
 
     <!-- Setting title -->
     <string name="name">Name</string>
@@ -717,16 +720,13 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
 
     <!-- SyncthingService -->
 
-
-    <!-- Title of the "syncthing disabled" dialog -->
-    <string name="syncthing_disabled_title">Syncthing ist deaktiviert</string>
-    <!-- Button text on the "syncthing disabled" dialog, used as menu item to stop syncthing service if "always_run_in_background" is true -->
+    <!-- Text for the exit button on the drawer -->
     <string name="exit">Beenden</string>
 
     <!-- Title of the notification shown while syncthing is running and enabled -->
     <string name="syncthing_active">Syncthing läuft</string>
 
-    <string name="syncthing_disabled">Syncthing ist deaktiviert</string>
+    <string name="syncthing_disabled">Syncthing schläft.</string>
 
     <string name="syncthing_terminated">Syncthing wurde beendet</string>
 
