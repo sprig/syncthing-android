@@ -43,7 +43,7 @@ public class RunConditionMonitor {
 
     private static final String TAG = "RunConditionMonitor";
 
-    private static final Boolean ENABLE_VERBOSE_LOG = false;
+    private Boolean ENABLE_VERBOSE_LOG = false;
 
     private static final String POWER_SOURCE_CHARGER_BATTERY = "ac_and_battery_power";
     private static final String POWER_SOURCE_CHARGER = "ac_power";
@@ -115,8 +115,9 @@ public class RunConditionMonitor {
     public RunConditionMonitor(Context context,
             OnShouldRunChangedListener onShouldRunChangedListener,
             OnSyncPreconditionChangedListener onSyncPreconditionChangedListener) {
-        LogV("Created new instance");
         ((SyncthingApp) context.getApplicationContext()).component().inject(this);
+        ENABLE_VERBOSE_LOG = AppPrefs.getPrefVerboseLog(mPreferences);
+        LogV("Created new instance");
         mContext = context;
         res = mContext.getResources();
         mOnShouldRunChangedListener = onShouldRunChangedListener;

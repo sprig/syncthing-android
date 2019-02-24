@@ -42,6 +42,9 @@ import com.nutomic.syncthingandroid.model.SystemStatus;
 import com.nutomic.syncthingandroid.model.SystemVersion;
 import com.nutomic.syncthingandroid.service.Constants;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
@@ -65,7 +68,7 @@ public class RestApi {
 
     private static final String TAG = "RestApi";
 
-    private static final Boolean ENABLE_VERBOSE_LOG = false;
+    private Boolean ENABLE_VERBOSE_LOG = false;
 
     /**
      * Compares folders by labels, uses the folder ID as fallback if the label is empty
@@ -143,20 +146,20 @@ public class RestApi {
     /**
      * Stores the latest result of device and folder completion events.
      */
-    private Completion mCompletion = new Completion();
+    private Completion mCompletion;
 
     private Gson mGson;
-
-    @Inject NotificationHandler mNotificationHandler;
 
     public RestApi(Context context, URL url, String apiKey, OnApiAvailableListener apiListener,
                    OnConfigChangedListener configListener) {
         ((SyncthingApp) context.getApplicationContext()).component().inject(this);
+        ENABLE_VERBOSE_LOG = AppPrefs.getPrefVerboseLog(context);
         mContext = context;
         mUrl = url;
         mApiKey = apiKey;
         mOnApiAvailableListener = apiListener;
         mOnConfigChangedListener = configListener;
+        mCompletion = new Completion(ENABLE_VERBOSE_LOG);
         mGson = getGson();
     }
 
@@ -412,8 +415,13 @@ public class RestApi {
         mOnConfigChangedListener.onConfigChanged();
     }
 
+    /**
+     * Posts shutdown request.
+     * This will cause SyncthingNative to exit and not restart.
+     */
     public void shutdown() {
-        mNotificationHandler.cancelRestartNotification();
+        new PostRequest(mContext, mUrl, PostRequest.URI_SYSTEM_SHUTDOWN, mApiKey,
+                null, null, null);
     }
 
     /**
@@ -831,6 +839,37 @@ public class RestApi {
         synchronized (mConfigLock) {
             mConfig.options = options;
         }
+    }
+
+    public void downloadSupportBundle(File targetFile, final OnResultListener1<Boolean> listener) {
+        new GetRequest(mContext, mUrl, GetRequest.URI_DEBUG_SUPPORT, mApiKey, null, result -> {
+            Boolean failSuccess = true;
+            LogV("downloadSupportBundle: Writing '" + targetFile.getPath() + "' ...");
+            FileOutputStream fileOutputStream = null;
+            try {
+                if (!targetFile.exists()) {
+                    targetFile.createNewFile();
+                }
+                fileOutputStream = new FileOutputStream(targetFile);
+                fileOutputStream.write(result.getBytes("ISO-8859-1"));  // Do not use UTF-8 here because the ZIP would be corrupted.
+                fileOutputStream.flush();
+            } catch (IOException e) {
+                Log.w(TAG, "downloadSupportBundle: Failed to write '" + targetFile.getPath() + "' #1", e);
+                failSuccess = false;
+            } finally {
+                try {
+                    if (fileOutputStream != null) {
+                        fileOutputStream.close();
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "downloadSupportBundle: Failed to write '" + targetFile.getPath() + "' #2", e);
+                    failSuccess = false;
+                }
+            }
+            if (listener != null) {
+                listener.onResult(failSuccess);
+            }
+        });
     }
 
     /**

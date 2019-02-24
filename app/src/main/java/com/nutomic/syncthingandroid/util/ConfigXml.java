@@ -13,6 +13,7 @@ import com.nutomic.syncthingandroid.model.FolderIgnoreList;
 import com.nutomic.syncthingandroid.model.Gui;
 import com.nutomic.syncthingandroid.model.Options;
 import com.nutomic.syncthingandroid.R;
+import com.nutomic.syncthingandroid.service.AppPrefs;
 import com.nutomic.syncthingandroid.service.Constants;
 import com.nutomic.syncthingandroid.service.SyncthingRunnable;
 
@@ -61,7 +62,7 @@ public class ConfigXml {
 
     private static final String TAG = "ConfigXml";
 
-    private static final Boolean ENABLE_VERBOSE_LOG = false;
+    private Boolean ENABLE_VERBOSE_LOG = false;
 
     public class OpenConfigException extends RuntimeException {
     }
@@ -98,6 +99,7 @@ public class ConfigXml {
 
     public ConfigXml(Context context) {
         mContext = context;
+        ENABLE_VERBOSE_LOG = AppPrefs.getPrefVerboseLog(context);
         mConfigFile = Constants.getConfigFile(mContext);
     }
 
@@ -813,6 +815,29 @@ public class ConfigXml {
                 }
             }
         }
+    }
+
+    public Gui getGui() {
+        Gui defaultGui = new Gui();
+        Element elementGui = (Element) mConfig.getDocumentElement().getElementsByTagName("gui").item(0);
+        if (elementGui == null) {
+            Log.e(TAG, "getGui: elementGui == null. Returning defaults.");
+            return defaultGui;
+        }
+        Gui gui = new Gui();
+        gui.debugging = getAttributeOrDefault(elementGui, "debugging", defaultGui.debugging);
+        gui.enabled = getAttributeOrDefault(elementGui, "enabled", defaultGui.enabled);
+        gui.useTLS = getAttributeOrDefault(elementGui, "tls", defaultGui.useTLS);
+
+        gui.address = getContentOrDefault(elementGui.getElementsByTagName("address").item(0), defaultGui.address);
+        gui.user = getContentOrDefault(elementGui.getElementsByTagName("user").item(0), defaultGui.user);
+        gui.password = getContentOrDefault(elementGui.getElementsByTagName("password").item(0), "");
+        gui.apiKey = getContentOrDefault(elementGui.getElementsByTagName("apiKey").item(0), "");
+        gui.theme = getContentOrDefault(elementGui.getElementsByTagName("theme").item(0), defaultGui.theme);
+        gui.insecureAdminAccess = getContentOrDefault(elementGui.getElementsByTagName("insecureAdminAccess").item(0), defaultGui.insecureAdminAccess);
+        gui.insecureAllowFrameLoading = getContentOrDefault(elementGui.getElementsByTagName("insecureAllowFrameLoading").item(0), defaultGui.insecureAllowFrameLoading);
+        gui.insecureSkipHostCheck = getContentOrDefault(elementGui.getElementsByTagName("insecureSkipHostCheck").item(0), defaultGui.insecureSkipHostCheck);
+        return gui;
     }
 
     public Options getOptions() {
