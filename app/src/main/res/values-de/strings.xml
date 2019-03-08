@@ -101,7 +101,8 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <!-- Text for FoldersFragment and DevicesFragment loading view -->
     <!-- Shown instead of web_gui_loading if the key does not exist and has to be created -->
     <string name="web_gui_creating_key">Geheimschlüssel werden generiert. Dies kann einige Minuten dauern&#8230;</string>
-    <!-- FoldersFragment -->
+
+    <!-- FolderListFragment -->
 
 
     <string name="folders_fragment_title">Ordner</string>
@@ -125,13 +126,16 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <string name="suggest_file_manager_app_dialog_title">Kein kompatibler Dateimanager gefunden</string>
     <string name="suggest_file_manager_app_dialog_text">Wir empfehlen Dir, die Open-Source App \"Simple File Manager\" aus F-Droid zu installieren. Möchtest Du ihre Seite im App-Store aufrufen?</string>
 
-    <!-- DevicesFragment -->
+    <!-- DeviceListFragment -->
 
-
+    <!-- Devices tab title -->
     <string name="devices_fragment_title">Geräte</string>
 
-    <!-- Shown if no devices exist -->
-    <string name="devices_list_empty">Keine Geräte gefunden</string>
+    <!-- Shown if no devices are configured in add folder dialog  -->
+    <string name="devices_list_empty">Keine Geräte konfiguriert. Tippe zum Hinzufügen eines neuen Geräts.</string>
+
+    <!-- Shown in ListView if no devices are configured -->
+    <string name="no_devices_configured">Keine Geräte konfiguriert.\nBeginne jetzt mit dem Hinzufügen eines Geräts.</string>
 
     <!-- Indicates that a folder is fully synced to the local device -->
     <string name="device_up_to_date">Aktuell</string>
@@ -647,6 +651,9 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <!-- Title of the preference showing database size -->
     <string name="syncthing_database_size">Syncthing Datenbankgröße</string>
 
+    <!-- Title of the preference showing the OS open file limit -->
+    <string name="os_open_file_limit">Android Offene Dateien Limit</string>
+
     <!-- FolderPickerAcitivity -->
 
 
@@ -735,7 +742,7 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <string name="reason_not_on_battery_power">Telefon wird nicht batteriebetrieben</string>
     <string name="reason_not_while_power_saving">Syncthing läuft nicht, weil das Telefon im Energiesparmodus ist.</string>
     <string name="reason_not_while_auto_sync_data_disabled">Syncthing läuft nicht, weil die Android-Kachel \"Automatische Datensynchronisation\" ausgeschaltet ist.</string>
-    <string name="reason_mobile_data_disallowed">Syncthing wurde verboten, die mobile Datenverbindung zu nutzen.</string>
+    <string name="reason_mobile_data_disallowed">Syncthing wurde nicht konfiguriert, die mobile Datenverbindung zu nutzen.</string>
     <string name="reason_on_mobile_data">Syncthing läuft, weil die mobile Datenverbindung aufgebaut ist.</string>
     <string name="reason_not_on_mobile_data">Syncthing darf bei mobiler Datenverbindung laufen, jedoch sind mobile Daten nicht verbunden.</string>
     <string name="reason_wifi_disallowed">Syncthing wurde verboten, die WLAN- oder Kabel-Verbindung zu nutzen.</string>
@@ -830,9 +837,11 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <string name="state_syncing_general">Synchronisiere</string>
     <string name="state_syncing">Synchronisiere (%1$d%%)</string>
     <string name="state_error">Fehler</string>
+    <string name="state_error_message">Fehler (%1$s)</string>
     <string name="state_unknown">Unbekannt</string>
     <string name="state_paused">Pausiert</string>
     <string name="status_outofsync">Nicht synchronisiert</string>
+    <string name="state_unshared">Ungeteilt</string>
 
     <!-- Format string for folder size, eg "500 MiB / 1 GiB" -->
     <string name="folder_size_format">%1$s / %2$s</string>
