@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE resources [
+    <!ENTITY folder_ignore_delete_docs_url "https://docs.syncthing.net/advanced/folder-ignoredelete.html">
+]>
+
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="app_name">Syncthing-Fork</string>
@@ -212,6 +216,10 @@ Please report any problems you encounter via Github.</string>
     <!-- Setting title and description -->
     <string name="folder_variable_size_blocks_caption">Variable Size Blocks</string>
     <string name="folder_variable_size_blocks_description">Variable size blocks (also "large blocks") are more efficient for large files. If you enable this on one folder, you have to enable it for this folder on all devices.</string>
+
+    <!-- Setting title and description -->
+    <string name="folder_ignore_delete_caption">Ignore Delete</string>
+    <string name="folder_ignore_delete_description">Expert option that affects the handling of incoming index updates. When set, incoming updates with the delete flag set are ignored. See &folder_ignore_delete_docs_url;</string>
 
     <!-- Setting title -->
     <string name="folder_pause">Pause Folder</string>
@@ -459,6 +467,10 @@ Please report any problems you encounter via Github.</string>
         <item>[external_storage]/Android/data</item>
         <item>[external_storage]/Android/media</item>
     </string-array>
+
+    <string name="expert_mode_title">Expert mode</string>
+
+    <string name="expert_mode_summary">Enabling this option will show advanced configuration options. You should have a look at the Syncthing Docs first to make sure you know how to use them correctly. Incorrect settings may cause battery drain, system resource exhaust or incomplete synchronization.</string>
 
     <string name="preference_language_title">Language</string>
 
