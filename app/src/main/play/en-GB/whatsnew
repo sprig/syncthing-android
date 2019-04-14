@@ -1,12 +1,12 @@
 Fixes
+* Show notification if SDcard is full (#382)
 * Support for Android 10 Q
 Enhancements
-* Work around cleanup of the folder marker by Huawei, Xiaomi firmware (#363)
-* Fix selecting parent folder after "Sharing to Syncthing" subfolder (#366)
-* Add option to enable expert mode (#328)
-* Add UI for "ignoreDelete" folder option (#357)
+* Dark theme (#401)
+* Option to sync every hour for 5 minutes (#387)
+* Show total downloaded and uploaded bytes
+* Suggest new folder creation on primary storage (#379)
 * Enable largeBlocks for new folders by default (#301)
-* Add folder dialog: "Tap to add device" if no devices are present (#345)
 Notes
-* Syncthing v1.1.0
+* Syncthing v1.1.1
 * Refer to GitHub for detailed change log.
