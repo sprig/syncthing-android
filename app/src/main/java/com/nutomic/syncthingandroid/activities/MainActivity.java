@@ -48,7 +48,7 @@ import com.nutomic.syncthingandroid.fragments.DeviceListFragment;
 import com.nutomic.syncthingandroid.fragments.DrawerFragment;
 import com.nutomic.syncthingandroid.fragments.FolderListFragment;
 import com.nutomic.syncthingandroid.fragments.StatusFragment;
-import com.nutomic.syncthingandroid.receiver.WiFiDirectReceiver;
+import com.nutomic.syncthingandroid.fragments.WidiFragment;
 import com.nutomic.syncthingandroid.service.RestApi;
 import com.nutomic.syncthingandroid.service.SyncthingService;
 import com.nutomic.syncthingandroid.service.SyncthingServiceBinder;
@@ -99,22 +99,9 @@ public class MainActivity extends SyncthingActivity
     private static final int FOLDER_FRAGMENT_ID = 0;
     private static final int DEVICE_FRAGMENT_ID = 1;
     private static final int STATUS_FRAGMENT_ID = 2;
+    private static final int WIDI_FRAGMENT_ID = 3;
 
-    Button btnOnOff, btnDiscover, btnSend;
-    ListView listView;
-    TextView read_msg_box;
-    public TextView connectionStatus;
-    EditText writeMsg;
 
-    WifiManager wifiManager;
-    WifiP2pManager mManager;
-    WifiP2pManager.Channel mChannel;
-    WiFiDirectReceiver mWiFiDirectReceiver;
-    IntentFilter mIntentFilter;
-
-    List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
-    String[] deviceNameArray;
-    WifiP2pDevice[] deviceArray;
 
     /**
      * Time after first start when usage reporting dialog should be shown.
@@ -134,6 +121,7 @@ public class MainActivity extends SyncthingActivity
     private FolderListFragment mFolderListFragment;
     private DeviceListFragment mDeviceListFragment;
     private StatusFragment     mStatusFragment;
+    private WidiFragment       mWidiFragment;
     private DrawerFragment     mDrawerFragment;
 
     private ActionBarDrawerToggle mDrawerToggle;
@@ -221,6 +209,8 @@ public class MainActivity extends SyncthingActivity
                     savedInstanceState, StatusFragment.class.getName());
             mDrawerFragment = (DrawerFragment) fm.getFragment(
                     savedInstanceState, DrawerFragment.class.getName());
+            mWidiFragment = (WidiFragment) fm.getFragment(
+                    savedInstanceState, WidiFragment.class.getName());
         }
         if (mFolderListFragment == null) {
             mFolderListFragment = new FolderListFragment();
@@ -230,6 +220,9 @@ public class MainActivity extends SyncthingActivity
         }
         if (mStatusFragment == null) {
             mStatusFragment = new StatusFragment();
+        }
+        if (mWidiFragment == null) {
+            mWidiFragment = new WidiFragment();
         }
         if (mDrawerFragment == null) {
             mDrawerFragment = new DrawerFragment();
@@ -265,133 +258,10 @@ public class MainActivity extends SyncthingActivity
             }
         }
 
-        initialWork();
-
-        if (!wifiManager.isWifiEnabled()) {
-            wifiManager.setWifiEnabled(true);
-            btnOnOff.setText("ON - TURN OFF");
-        }
-        btnOnOff.setText("OFF - TURN ON");
-        exqListener();
-
         onNewIntent(getIntent());
     }
 
-    private void exqListener() {
-        btnOnOff.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (wifiManager.isWifiEnabled()) {
-                        wifiManager.setWifiEnabled(false);
-                        btnOnOff.setText("OFF - TURN ON");
-                    } else {
-                        wifiManager.setWifiEnabled(true);
-                        btnOnOff.setText("ON - TURN OFF");
-                    }
-                }
-        });
 
-        btnDiscover.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-                            @Override
-                            public void onSuccess() {
-                                connectionStatus.setText("Discovery succeeded.");
-                            }
-
-                            @Override
-                            public void onFailure(int i) {
-                                connectionStatus.setText("Discovery failed.");
-                            }
-                    });
-                }
-        });
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    final WifiP2pDevice device = deviceArray[i];
-                    WifiP2pConfig config = new WifiP2pConfig();
-                    config.deviceAddress = device.deviceAddress;
-
-                    mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
-                            @Override
-                            public void onSuccess() {
-                                Toast.makeText(getApplicationContext(), "Connected to " + device.deviceName + " succeeded.", Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onFailure(int i) {
-                                Toast.makeText(getApplicationContext(), "Failed to connect to " + device.deviceName + ".", Toast.LENGTH_SHORT).show();
-                            }
-                    });
-                }
-        });
-    }
-
-    private void initialWork() {
-        btnOnOff = (Button) findViewById(R.id.onOff);
-        btnDiscover = (Button) findViewById(R.id.discover);
-        btnSend = (Button) findViewById(R.id.sendButton);
-        listView = (ListView) findViewById(R.id.peerListView);
-        read_msg_box = (TextView) findViewById(R.id.readMsg);
-        connectionStatus = (TextView) findViewById(R.id.connectionStatus);
-        writeMsg = (EditText) findViewById(R.id.writeMsg);
-
-        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-
-        mManager = (WifiP2pManager) getApplicationContext().getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(MainActivity.this, getMainLooper(), null);
-
-        mWiFiDirectReceiver = new WiFiDirectReceiver(mManager, mChannel, MainActivity.this);
-
-        mIntentFilter = new IntentFilter();
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-    }
-
-    public final WifiP2pManager.PeerListListener mPeerListListener = new WifiP2pManager.PeerListListener() {
-            @Override
-            public void onPeersAvailable(WifiP2pDeviceList peerList) {
-                if (!peerList.getDeviceList().equals(peers)) {
-                    peers.clear();
-                    peers.addAll(peerList.getDeviceList());
-
-                    deviceNameArray = new String[peerList.getDeviceList().size()];
-                    deviceArray = new WifiP2pDevice[peerList.getDeviceList().size()];
-                    int index = 0;
-                    for (WifiP2pDevice device : peerList.getDeviceList()) {
-                        deviceNameArray[index] = device.deviceName;
-                        deviceArray[index] = device;
-                        index++;
-                    }
-
-                    ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                            getApplicationContext(),
-                            android.R.layout.simple_list_item_1,
-                            deviceNameArray);
-                    listView.setAdapter(adapter);
-                }
-
-                if (peers.size() == 0) {
-                    Toast.makeText(getApplicationContext(), "No Device Found", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-            }
-    };
-
-    public final WifiP2pManager.ConnectionInfoListener connectionInfoListener = new WifiP2pManager.ConnectionInfoListener() {
-        @Override
-        public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
-            final InetAddress groupOwnerAddress = wifiP2pInfo.groupOwnerAddress;
-            if (wifiP2pInfo.groupFormed) {
-                connectionStatus.setText(wifiP2pInfo.isGroupOwner ? "Group Owner" : "Group Member");
-            }
-        }
-    };
 
 
 
@@ -409,7 +279,7 @@ public class MainActivity extends SyncthingActivity
      * Updates the ViewPager to show tabs depending on the service state.
      */
     private void updateViewPager() {
-        final int numPages = 3;
+        final int numPages = 4;
         FragmentStatePagerAdapter mSectionsPagerAdapter =
                 new FragmentStatePagerAdapter(getSupportFragmentManager()) {
 
@@ -422,6 +292,8 @@ public class MainActivity extends SyncthingActivity
                         return mDeviceListFragment;
                     case STATUS_FRAGMENT_ID:
                         return mStatusFragment;
+                    case WIDI_FRAGMENT_ID:
+                        return mWidiFragment;
                     default:
                         return null;
                 }
@@ -446,6 +318,8 @@ public class MainActivity extends SyncthingActivity
                         return getResources().getString(R.string.devices_fragment_title);
                     case STATUS_FRAGMENT_ID:
                         return getResources().getString(R.string.status_fragment_title);
+                    case WIDI_FRAGMENT_ID:
+                        return getResources().getString(R.string.widi_fragment_title);
                     default:
                         return String.valueOf(position);
                 }
@@ -479,7 +353,6 @@ public class MainActivity extends SyncthingActivity
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mWiFiDirectReceiver);
     }
 
     @Override
@@ -497,7 +370,6 @@ public class MainActivity extends SyncthingActivity
             mSyncthingService.evaluateRunConditions();
         }
         super.onResume();
-        registerReceiver(mWiFiDirectReceiver, mIntentFilter);
     }
 
     @Override
@@ -510,6 +382,7 @@ public class MainActivity extends SyncthingActivity
             mSyncthingService.unregisterOnServiceStateChangeListener(mFolderListFragment);
             mSyncthingService.unregisterOnServiceStateChangeListener(mDeviceListFragment);
             mSyncthingService.unregisterOnServiceStateChangeListener(mStatusFragment);
+            mSyncthingService.unregisterOnServiceStateChangeListener(mWidiFragment);
         }
     }
 
@@ -523,6 +396,7 @@ public class MainActivity extends SyncthingActivity
         syncthingService.registerOnServiceStateChangeListener(mFolderListFragment);
         syncthingService.registerOnServiceStateChangeListener(mDeviceListFragment);
         syncthingService.registerOnServiceStateChangeListener(mStatusFragment);
+        syncthingService.registerOnServiceStateChangeListener(mWidiFragment);
     }
 
     /**
@@ -541,6 +415,7 @@ public class MainActivity extends SyncthingActivity
         putFragment.accept(mFolderListFragment);
         putFragment.accept(mDeviceListFragment);
         putFragment.accept(mStatusFragment);
+        putFragment.accept(mWidiFragment);
 
         outState.putBoolean(IS_SHOWING_RESTART_DIALOG, mRestartDialog != null && mRestartDialog.isShowing());
         if (mQrCodeDialog != null && mQrCodeDialog.isShowing()) {

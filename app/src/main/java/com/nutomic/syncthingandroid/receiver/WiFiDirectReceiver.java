@@ -8,18 +8,19 @@ import android.widget.Toast;
 import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 
-import com.nutomic.syncthingandroid.activities.MainActivity;
+// import com.nutomic.syncthingandroid.activities.MainActivity;
+import com.nutomic.syncthingandroid.fragments.WidiFragment;
 
 public class WiFiDirectReceiver extends BroadcastReceiver {
     private static final String TAG = "WiFiDirectReceiver";
 
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    private MainActivity mActivity;
+    private WidiFragment mActivity;
 
     public WiFiDirectReceiver(WifiP2pManager mManager,
                 WifiP2pManager.Channel mChannel,
-                MainActivity mActivity) {
+                WidiFragment mActivity) {
         this.mManager = mManager;
         this.mChannel = mChannel;
         this.mActivity = mActivity;
@@ -53,6 +54,7 @@ public class WiFiDirectReceiver extends BroadcastReceiver {
                     mManager.requestConnectionInfo(mChannel, mActivity.connectionInfoListener);
                     return;
                 }
+                // ToDo
                 mActivity.connectionStatus.setText("Device disconnected.");
                 break;
             case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION:

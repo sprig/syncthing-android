@@ -10,6 +10,7 @@ import com.nutomic.syncthingandroid.activities.SyncConditionsActivity;
 import com.nutomic.syncthingandroid.fragments.DeviceListFragment;
 import com.nutomic.syncthingandroid.fragments.FolderListFragment;
 import com.nutomic.syncthingandroid.fragments.StatusFragment;
+import com.nutomic.syncthingandroid.fragments.WidiFragment;
 import com.nutomic.syncthingandroid.receiver.AppConfigReceiver;
 import com.nutomic.syncthingandroid.service.RunConditionMonitor;
 import com.nutomic.syncthingandroid.service.EventProcessor;
@@ -37,6 +38,7 @@ public interface DaggerComponent {
     void inject(DeviceListFragment fragment);
     void inject(FolderListFragment fragment);
     void inject(StatusFragment fragment);
+    void inject(WidiFragment fragment);
     void inject(Languages languages);
     void inject(SyncthingService service);
     void inject(RunConditionMonitor runConditionMonitor);
