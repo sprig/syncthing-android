@@ -24,6 +24,9 @@
     <!-- WRITE_SETTINGS, WRITE_SECURE_SETTINGS are required to disable DuraSpeed -->
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <!-- Permissions required for WiFi-Direct -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
     <application
         android:allowBackup="false"
