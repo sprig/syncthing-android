@@ -213,10 +213,6 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <string name="folder_fileWatcherDescription">Fordert das Betriebssystem auf, über Änderungen an Dateien zu informieren. Falls deaktiviert erfolgt stattdessen stündliches Scannen.</string>
 
     <!-- Setting title and description -->
-    <string name="folder_variable_size_blocks_caption">Variable Blockgröße</string>
-    <string name="folder_variable_size_blocks_description">Blöcke variabler Größe (auch \"große Blöcke\") sind effizienter für größere Dateien. Wenn Du dies für einen Ordner aktivierst, musst du es für diesen Ordner auf allen Geräten aktivieren.</string>
-
-    <!-- Setting title and description -->
     <string name="folder_ignore_delete_caption">Löschen ignorieren</string>
     <string name="folder_ignore_delete_description">Expertenoption, die sich auf die Verarbeitung eingehender Indexaktualisierungen auswirkt. Wenn festgelegt, werden eingehende Aktualisierungen mit dem Löschkennzeichen ignoriert. Siehe &folder_ignore_delete_docs_url;</string>
 
@@ -529,6 +525,8 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <string name="enable_relaying">Weiterleitung aktivieren</string>
 
     <string name="usage_reporting">Anonymer Nutzungsbericht</string>
+
+    <string name="crash_reporting">Anonymer Absturzbericht</string>
 
     <string name="webui_tcp_port_title">Web UI TCP Port</string>
 
@@ -869,6 +867,7 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <!-- Possible folder states -->
     <string name="state_idle">Untätig</string>
     <string name="state_scanning">Scannen</string>
+    <string name="state_scan_waiting">Warte auf Scan</string>
     <string name="state_syncing_general">Synchronisiere</string>
     <string name="state_syncing">Synchronisiere (%1$d%%)</string>
     <string name="state_error">Fehler</string>

@@ -309,11 +309,14 @@ public class ConfigXml {
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node node = childNodes.item(i);
             if (node.getNodeName().equals("unackedNotificationID")) {
-                if (node.equals("fsWatcherNotification")) {
-                    Log.i(TAG, "Remove found unackedNotificationID 'fsWatcherNotification'.");
-                    options.removeChild(node);
-                    changed = true;
-                    break;
+                switch (getContentOrDefault(node, "")) {
+                    case "crAutoEnabled":
+                    case "crAutoDisabled":
+                    case "fsWatcherNotification":
+                        Log.i(TAG, "Remove found unackedNotificationID '" + node + "'.");
+                        options.removeChild(node);
+                        changed = true;
+                        break;
                 }
             }
         }
@@ -438,7 +441,6 @@ public class ConfigXml {
             folder.hashers = getContentOrDefault(r.getElementsByTagName("hashers").item(0), folder.hashers);
             folder.order = getContentOrDefault(r.getElementsByTagName("order").item(0), folder.order);
             folder.paused = getContentOrDefault(r.getElementsByTagName("paused").item(0), folder.paused);
-            folder.useLargeBlocks = getContentOrDefault(r.getElementsByTagName("useLargeBlocks").item(0), folder.useLargeBlocks);
             folder.ignoreDelete = getContentOrDefault(r.getElementsByTagName("ignoreDelete").item(0), folder.ignoreDelete);
             folder.copyOwnershipFromParent = getContentOrDefault(r.getElementsByTagName("copyOwnershipFromParent").item(0), folder.copyOwnershipFromParent);
 
@@ -535,7 +537,6 @@ public class ConfigXml {
                 setConfigElement(r, "hashers", Integer.toString(folder.hashers));
                 setConfigElement(r, "order", folder.order);
                 setConfigElement(r, "paused", Boolean.toString(folder.paused));
-                setConfigElement(r, "useLargeBlocks", Boolean.toString(folder.useLargeBlocks));
                 setConfigElement(r, "ignoreDelete", Boolean.toString(folder.ignoreDelete));
 
                 // Update devices that share this folder.
@@ -910,6 +911,12 @@ public class ConfigXml {
         options.setLowPriority = getContentOrDefault(elementOptions.getElementsByTagName("setLowPriority").item(0), options.setLowPriority);
         // minHomeDiskFree
         options.maxConcurrentScans = getContentOrDefault(elementOptions.getElementsByTagName("maxConcurrentScans").item(0), options.maxConcurrentScans);
+        options.unackedNotificationID = getContentOrDefault(elementOptions.getElementsByTagName("unackedNotificationID").item(0), options.unackedNotificationID);
+        options.crashReportingURL = getContentOrDefault(elementOptions.getElementsByTagName("crashReportingURL").item(0), options.crashReportingURL);
+        options.crashReportingEnabled =getContentOrDefault(elementOptions.getElementsByTagName("crashReportingEnabled").item(0), options.crashReportingEnabled);
+        options.stunKeepaliveStartS = getContentOrDefault(elementOptions.getElementsByTagName("stunKeepaliveStartS").item(0), options.stunKeepaliveStartS);
+        options.stunKeepaliveMinS = getContentOrDefault(elementOptions.getElementsByTagName("stunKeepaliveMinS").item(0), options.stunKeepaliveMinS);
+        options.stunServer = getContentOrDefault(elementOptions.getElementsByTagName("stunServer").item(0), options.stunServer);
         return options;
     }
 
@@ -1003,7 +1010,6 @@ public class ConfigXml {
         folder.setAttribute("type", Constants.FOLDER_TYPE_SEND_ONLY);
         folder.setAttribute("fsWatcherEnabled", Boolean.toString(defaultFolder.fsWatcherEnabled));
         folder.setAttribute("fsWatcherDelayS", Integer.toString(defaultFolder.fsWatcherDelayS));
-        setConfigElement(folder, "useLargeBlocks", Boolean.toString(defaultFolder.useLargeBlocks));
         return true;
     }
 
