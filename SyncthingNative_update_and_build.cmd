@@ -6,7 +6,7 @@ title Update and Build SyncthingNative "libsyncthing.so"
 cls
 REM 
 REM Script Consts.
-SET CLEAN_SRC_BEFORE_BUILD=1
+SET CLEAN_SRC_BEFORE_BUILD=0
 SET USE_GO_DEV=1
 SET DESIRED_SUBMODULE_VERSION=v1.2.0
 SET GRADLEW_PARAMS=-q
@@ -25,14 +25,14 @@ IF "%CLEAN_SRC_BEFORE_BUILD%" == "1" call :cleanBeforeBuild
 REM 
 echo [INFO] Fetching submodule "Syncthing" 1/2 ...
 md "%SCRIPT_PATH%syncthing\src\github.com\syncthing\syncthing" 2> NUL:
-git submodule init
-SET RESULT=%ERRORLEVEL%
-IF NOT "%RESULT%" == "0" echo [ERROR] git submodule init FAILED. & goto :eos
+REM git submodule init
+REM SET RESULT=%ERRORLEVEL%
+REM IF NOT "%RESULT%" == "0" echo [ERROR] git submodule init FAILED. & goto :eos
 REM 
 echo [INFO] Fetching submodule "Syncthing" 2/2 ...
-git submodule update --init --recursive --quiet
-SET RESULT=%ERRORLEVEL%
-IF NOT "%RESULT%" == "0" echo [ERROR] git submodule update FAILED. & goto :eos
+REM git submodule update --init --recursive --quiet
+REM SET RESULT=%ERRORLEVEL%
+REM IF NOT "%RESULT%" == "0" echo [ERROR] git submodule update FAILED. & goto :eos
 REM 
 cd /d "%SCRIPT_PATH%syncthing\src\github.com\syncthing\syncthing"
 echo [INFO] Fetching GitHub tags ...
@@ -40,10 +40,10 @@ git fetch --quiet --all
 SET RESULT=%ERRORLEVEL%
 IF NOT "%RESULT%" == "0" echo [ERROR] git fetch FAILED. & goto :eos
 REM 
-echo [INFO] Checking out syncthing_%DESIRED_SUBMODULE_VERSION% ...
-git checkout %DESIRED_SUBMODULE_VERSION% 2>&1 | find /i "HEAD is now at"
-SET RESULT=%ERRORLEVEL%
-IF NOT "%RESULT%" == "0" echo [ERROR] git checkout FAILED. & goto :eos
+REM echo [INFO] Checking out syncthing_%DESIRED_SUBMODULE_VERSION% ...
+REM git checkout %DESIRED_SUBMODULE_VERSION% 2>&1 | find /i "HEAD is now at"
+REM SET RESULT=%ERRORLEVEL%
+REM IF NOT "%RESULT%" == "0" echo [ERROR] git checkout FAILED. & goto :eos
 REM 
 cd /d "%SCRIPT_PATH%"
 REM
