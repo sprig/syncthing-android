@@ -8,7 +8,7 @@ REM
 REM Script Consts.
 SET CLEAN_SRC_BEFORE_BUILD=0
 SET USE_GO_DEV=1
-SET DESIRED_SUBMODULE_VERSION=v1.2.0
+SET DESIRED_SUBMODULE_VERSION=v1.2.1-rc.4-mtime
 SET GRADLEW_PARAMS=-q
 REM
 REM Runtime Variables.
@@ -23,13 +23,13 @@ IF NOT "%ERRORLEVEL%" == "0" echo [ERROR] sed.exe not found on PATH. & goto :eos
 REM 
 IF "%CLEAN_SRC_BEFORE_BUILD%" == "1" call :cleanBeforeBuild 
 REM 
-echo [INFO] Fetching submodule "Syncthing" 1/2 ...
+REM echo [INFO] Fetching submodule "Syncthing" 1/2 ...
 md "%SCRIPT_PATH%syncthing\src\github.com\syncthing\syncthing" 2> NUL:
 REM git submodule init
 REM SET RESULT=%ERRORLEVEL%
 REM IF NOT "%RESULT%" == "0" echo [ERROR] git submodule init FAILED. & goto :eos
 REM 
-echo [INFO] Fetching submodule "Syncthing" 2/2 ...
+REM echo [INFO] Fetching submodule "Syncthing" 2/2 ...
 REM git submodule update --init --recursive --quiet
 REM SET RESULT=%ERRORLEVEL%
 REM IF NOT "%RESULT%" == "0" echo [ERROR] git submodule update FAILED. & goto :eos
