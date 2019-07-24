@@ -54,7 +54,7 @@ public class Folder {
     public Boolean copyOwnershipFromParent = false;
 
     // Since v1.2.1-rc.4, see PR #5852
-    public int rawModTimeWindowS = 0;
+    public int modTimeWindowS = 0;
 
     // Folder Status
     public String invalid;
