@@ -12,13 +12,16 @@ import platform
 
 SUPPORTED_PYTHON_PLATFORMS = ['Windows', 'Linux', 'Darwin']
 
-GO_VERSION = '1.12.1'
-GO_EXPECTED_SHASUM_LINUX = '2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec'
-GO_EXPECTED_SHASUM_WINDOWS = '2f4849b512fffb2cf2028608aa066cc1b79e730fd146c7b89015797162f08ec5'
+# Leave empty to auto-detect version by 'git describe'.
+FORCE_DISPLAY_SYNCTHING_VERSION = ''
 
-NDK_VERSION = 'r19c'
-NDK_EXPECTED_SHASUM_LINUX = 'fd94d0be6017c6acbd193eb95e09cf4b6f61b834'
-NDK_EXPECTED_SHASUM_WINDOWS = 'c4cd8c0b6e7618ca0a871a5f24102e40c239f6a3'
+GO_VERSION = '1.13beta1'
+GO_EXPECTED_SHASUM_LINUX = 'dbd131c92f381a5bc5ca1f0cfd942cb8be7d537007b6f412b5be41ff38a7d0d9'
+GO_EXPECTED_SHASUM_WINDOWS = '08098b4b0e1a105971d2fced2842e806f8ffa08973ae8781fd22dd90f76404fb'
+
+NDK_VERSION = 'r20'
+NDK_EXPECTED_SHASUM_LINUX = '8665fc84a1b1f0d6ab3b5fdd1e30200cc7b9adff'
+NDK_EXPECTED_SHASUM_WINDOWS = '36e1dc77fad08ad2498fb94b13ad8caf26bbd9df'
 
 BUILD_TARGETS = [
     {
@@ -354,15 +357,18 @@ subprocess.check_call([
     '--tags'
 ])
 
-print('Invoking git describe ...')
-syncthingVersion = subprocess.check_output([
-    git_bin,
-    '-C',
-    syncthing_dir,
-    'describe',
-    '--always'
-]).strip();
-syncthingVersion = syncthingVersion.decode().replace("rc", "preview");
+if FORCE_DISPLAY_SYNCTHING_VERSION:
+    syncthingVersion = FORCE_DISPLAY_SYNCTHING_VERSION.replace("rc", "preview");
+else:
+    print('Invoking git describe ...')
+    syncthingVersion = subprocess.check_output([
+        git_bin,
+        '-C',
+        syncthing_dir,
+        'describe',
+        '--always'
+    ]).strip();
+    syncthingVersion = syncthingVersion.decode().replace("rc", "preview");
 
 print('Cleaning go-build cache')
 subprocess.check_call([go_bin, 'clean', '-cache'], cwd=syncthing_dir)

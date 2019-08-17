@@ -23,9 +23,9 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -43,7 +43,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
-import com.nutomic.syncthingandroid.activities.WebViewActivity;
 import com.nutomic.syncthingandroid.model.Device;
 import com.nutomic.syncthingandroid.model.Gui;
 import com.nutomic.syncthingandroid.model.Options;
@@ -1142,7 +1141,11 @@ public class SettingsActivity extends SyncthingActivity {
          * Get current open file limit enforced by the Android OS.
          */
         private String getOpenFileLimit() {
-            String result = Util.runShellCommandGetOutput("/system/bin/ulimit -n", false);
+            String shellCommand = "ulimit -n";
+            if (Build.VERSION.SDK_INT < 29) {
+                shellCommand = "/system/bin/" + shellCommand;
+            }
+            String result = Util.runShellCommandGetOutput(shellCommand, false);
             if (TextUtils.isEmpty(result)) {
                 return "N/A";
             }
