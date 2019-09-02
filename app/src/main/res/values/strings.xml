@@ -177,6 +177,11 @@ Please report any problems you encounter via Github.</string>
 
     <!-- StatusFragment -->
     <string name="status_fragment_title">Status</string>
+
+    <string name="button_follow_run_conditions">FOLLOW RUN CONDITIONS</string>
+    <string name="button_force_start">FORCE START\nIGNORE RUN CONDITIONS</string>
+    <string name="button_force_stop">FORCE STOP\nIGNORE RUN CONDITIONS</string>
+
     <string name="syncthing_starting">Syncthing is starting.</string>
     <string name="syncthing_running">Syncthing is running.</string>
     <string name="syncthing_not_running">Syncthing is not running.</string>
@@ -430,6 +435,9 @@ Please report any problems you encounter via Github.</string>
 
     <string name="run_on_mobile_data_title">Run on mobile data</string>
     <string name="run_on_mobile_data_summary">Run when device is connected via the mobile data network. Warning: This can consume a lot of data from your mobile operator data plan if you sync large amounts of data.</string>
+
+    <string name="run_on_roaming_title">Run while roaming</string>
+    <string name="run_on_roaming_summary">Allow Syncthing to use mobile data while roaming. (!) Please post feedback to GitHub if this works correctly.</string>
 
     <string name="run_on_wifi_title">Run on Wi-Fi</string>
     <string name="run_on_wifi_summary">Run when device is connected to a Wi-Fi or ethernet network.</string>
@@ -794,15 +802,26 @@ Please report any problems you encounter via Github.</string>
 
     <!-- RunConditionMonitor -->
 
+    <string name="reason_force_start">Syncthing is running because you forced it to start regardless of the run conditions.</string>
+    <string name="reason_force_stop">Syncthing is not running because you forced it to stop regardless of the run conditions.</string>
+
     <!-- Explanations why syncthing is running or not running -->
     <string name="reason_not_within_time_frame">You enabled \'Run according to time schedule\' and the last sync was no more than an hour ago.</string>
     <string name="reason_not_charging">Phone is not charging.</string>
     <string name="reason_not_on_battery_power">Phone is not running on battery power.</string>
     <string name="reason_not_while_power_saving">Syncthing is not running as the phone is currently power saving.</string>
     <string name="reason_not_while_auto_sync_data_disabled">Syncthing is not running as Android currently has \'Auto-sync data\' disabled.</string>
+
+    <!-- ... Mobile data -->
     <string name="reason_mobile_data_disallowed">Syncthing is not configured to run on mobile data connection.</string>
-    <string name="reason_on_mobile_data">Syncthing is running as mobile data is currently connected.</string>
+    <string name="reason_on_mobile_data">Syncthing is allowed to run on mobile data.</string>
     <string name="reason_not_on_mobile_data">Syncthing is allowed to run on mobile data connection but mobile data isn\'t connected.</string>
+
+    <!-- ... Roaming -->
+    <string name="reason_on_roaming_nonroaming_mobile_data">Syncthing is allowed to run on roaming and non-roaming mobile data connections.</string>
+    <string name="reason_on_nonroaming_mobile_data">Syncthing is allowed to run on non-roaming mobile data connections. The active connection is non-roaming.</string>
+    <string name="reason_not_nonroaming_mobile_data">Syncthing is not running as you disallowed it to run on roaming mobile data connections.</string>
+
     <string name="reason_wifi_disallowed">Syncthing is not allowed to run on WiFi or ethernet.</string>
     <string name="reason_on_wifi">Syncthing is allowed to run on WiFi and WiFi is currently connected.</string>
     <string name="reason_not_on_wifi">Syncthing is allowed to run on WiFi but WiFi isn\'t connected or the phone is in flight mode.</string>
@@ -947,6 +966,7 @@ Please report any problems you encounter via Github.</string>
     <string name="maximum_age">Maximum Age</string>
     <string name="clean_out_after">Clean out after</string>
     <string name="file_versioning">File Versioning</string>
+    <string name="file_versioning_generic_description">Syncthing supports archiving the old version of a file when it is deleted or replaced with a newer version from the cluster. Click to see available versioning strategies. File versioning is configured per folder, on a per-device basis. Selected strategy:</string>
     <string name="none"> None</string>
     <string name="versions_path">Versions Path</string>
     <string name="command">Command</string>

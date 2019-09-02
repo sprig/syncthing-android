@@ -19,6 +19,7 @@ public class Constants {
     // Preferences - Run conditions
     public static final String PREF_START_SERVICE_ON_BOOT       = "always_run_in_background";
     public static final String PREF_RUN_ON_MOBILE_DATA          = "run_on_mobile_data";
+    public static final String PREF_RUN_ON_ROAMING              = "run_on_roaming";
     public static final String PREF_RUN_ON_WIFI                 = "run_on_wifi";
     public static final String PREF_RUN_ON_METERED_WIFI         = "run_on_metered_wifi";
     public static final String PREF_USE_WIFI_SSID_WHITELIST     = "use_wifi_whitelist";
@@ -85,6 +86,16 @@ public class Constants {
      */
     public static final String PREF_LAST_BINARY_VERSION         = "lastBinaryVersion";
     public static final String PREF_LOCAL_DEVICE_ID             = "localDeviceID";
+
+    /**
+     * {@link RunConditionMonitor}
+     * {@link StatusFragment}
+     */
+    public static final String PREF_BTNSTATE_FORCE_START_STOP   = "btnStateForceStartStop";
+
+    public static final int BTNSTATE_NO_FORCE_START_STOP        = 0;
+    public static final int BTNSTATE_FORCE_START                = 1;
+    public static final int BTNSTATE_FORCE_STOP                 = 2;
 
     /**
      * {@link EventProcessor}

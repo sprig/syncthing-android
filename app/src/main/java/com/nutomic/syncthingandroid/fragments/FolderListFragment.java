@@ -4,8 +4,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ListFragment;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.ListFragment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -148,7 +148,12 @@ public class FolderListFragment extends ListFragment implements SyncthingService
                 mServiceState != SyncthingService.State.ACTIVE) {
             // Syncthing is not running or REST API is not available yet.
             ConfigXml configXml = new ConfigXml(activity);
-            configXml.loadConfig();
+            try {
+                configXml.loadConfig();
+            } catch (ConfigXml.OpenConfigException e) {
+                Log.e(TAG, "Failed to parse existing config. You will need support from here ...");
+                return;
+            }
             folders = configXml.getFolders();
         } else {
             // Syncthing is running and REST API is available.

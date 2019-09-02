@@ -12,13 +12,16 @@ import platform
 
 SUPPORTED_PYTHON_PLATFORMS = ['Windows', 'Linux', 'Darwin']
 
-GO_VERSION = '1.12.1'
-GO_EXPECTED_SHASUM_LINUX = '2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec'
-GO_EXPECTED_SHASUM_WINDOWS = '2f4849b512fffb2cf2028608aa066cc1b79e730fd146c7b89015797162f08ec5'
+# Leave empty to auto-detect version by 'git describe'.
+FORCE_DISPLAY_SYNCTHING_VERSION = ''
 
-NDK_VERSION = 'r19c'
-NDK_EXPECTED_SHASUM_LINUX = 'fd94d0be6017c6acbd193eb95e09cf4b6f61b834'
-NDK_EXPECTED_SHASUM_WINDOWS = 'c4cd8c0b6e7618ca0a871a5f24102e40c239f6a3'
+GO_VERSION = '1.13rc2'
+GO_EXPECTED_SHASUM_LINUX = '3cd4490021a5f1f25a7440edca03910e40a38e587b578cf52ab7143a81db1861'
+GO_EXPECTED_SHASUM_WINDOWS = 'ed34ad4b9594ab0d19b2fed9b07ea56c573279f46041b3c40a17c39a35bf285c'
+
+NDK_VERSION = 'r20'
+NDK_EXPECTED_SHASUM_LINUX = '8665fc84a1b1f0d6ab3b5fdd1e30200cc7b9adff'
+NDK_EXPECTED_SHASUM_WINDOWS = '36e1dc77fad08ad2498fb94b13ad8caf26bbd9df'
 
 BUILD_TARGETS = [
     {
@@ -40,6 +43,12 @@ BUILD_TARGETS = [
         'goarch': '386',
         'jni_dir': 'x86',
         'clang': 'i686-linux-android16-clang',
+    },
+    {
+        'arch': 'x86_64',
+        'goarch': 'amd64',
+        'jni_dir': 'x86_64',
+        'clang': 'x86_64-linux-android21-clang',
     }
 ]
 
@@ -354,22 +363,26 @@ subprocess.check_call([
     '--tags'
 ])
 
-print('Invoking git describe ...')
-syncthingVersion = subprocess.check_output([
-    git_bin,
-    '-C',
-    syncthing_dir,
-    'describe',
-    '--always'
-]).strip();
-syncthingVersion = syncthingVersion.decode().replace("rc", "preview");
+if FORCE_DISPLAY_SYNCTHING_VERSION:
+    syncthingVersion = FORCE_DISPLAY_SYNCTHING_VERSION.replace("rc", "preview");
+else:
+    print('Invoking git describe ...')
+    syncthingVersion = subprocess.check_output([
+        git_bin,
+        '-C',
+        syncthing_dir,
+        'describe',
+        '--always'
+    ]).strip();
+    syncthingVersion = syncthingVersion.decode().replace("rc", "preview");
 
 print('Cleaning go-build cache')
 subprocess.check_call([go_bin, 'clean', '-cache'], cwd=syncthing_dir)
 
 print('Building syncthing version', syncthingVersion);
 for target in BUILD_TARGETS:
-    print('Building for', target['arch'])
+    print('')
+    print('*** Building for', target['arch'])
 
     ndk_clang_fullfn = os.path.join(
         os.environ['ANDROID_NDK_HOME'],
@@ -414,6 +427,6 @@ for target in BUILD_TARGETS:
         os.unlink(target_artifact)
     os.rename(os.path.join(syncthing_dir, 'syncthing'), target_artifact)
 
-    print('Finished build for', target['arch'])
+    print('*** Finished build for', target['arch'])
 
 print('All builds finished')

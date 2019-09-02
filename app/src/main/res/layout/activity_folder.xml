@@ -120,7 +120,7 @@
 
             </LinearLayout>
 
-            <android.support.v7.widget.SwitchCompat
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/fileWatcher"
                 style="@style/Widget.Syncthing.TextView.Label.Details"
                 android:layout_width="match_parent"
@@ -141,7 +141,7 @@
                 android:text="@string/folder_fileWatcherDescription"
                 android:focusable="false"/>
 
-            <android.support.v7.widget.SwitchCompat
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/folderPause"
                 style="@style/Widget.Syncthing.TextView.Label.Details"
                 android:layout_width="match_parent"
@@ -160,7 +160,7 @@
                 android:orientation="vertical"
                 android:gravity="center_vertical">
 
-                <android.support.v7.widget.SwitchCompat
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/customSyncConditionsSwitch"
                     style="@style/Widget.Syncthing.TextView.Label.Details"
                     android:layout_width="match_parent"
@@ -242,6 +242,7 @@
 
             </LinearLayout>
 
+            <!-- Versioning -->
             <LinearLayout
                 android:id="@+id/versioningContainer"
                 android:layout_width="match_parent"
@@ -263,12 +264,21 @@
                     android:text="@string/file_versioning" />
 
                 <TextView
-                    android:id="@+id/versioningType"
+                    android:id="@+id/versioningGenericDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="75dp"
                     android:layout_marginStart="75dp"
                     android:layout_marginTop="-20dp"
+                    android:text="@string/file_versioning_generic_description"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Caption" />
+
+                <TextView
+                    android:id="@+id/versioningType"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="75dp"
+                    android:layout_marginStart="75dp"
                     android:textAppearance="@style/TextAppearance.AppCompat.Caption" />
 
                 <TextView
@@ -291,7 +301,7 @@
                 android:gravity="center_vertical"
                 android:focusable="true">
 
-                <android.support.v7.widget.SwitchCompat
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/ignoreDelete"
                     style="@style/Widget.Syncthing.TextView.Label.Details"
                     android:layout_width="match_parent"

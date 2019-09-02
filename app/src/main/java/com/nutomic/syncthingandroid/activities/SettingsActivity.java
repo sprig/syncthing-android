@@ -23,9 +23,9 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -43,7 +43,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
-import com.nutomic.syncthingandroid.activities.WebViewActivity;
 import com.nutomic.syncthingandroid.model.Device;
 import com.nutomic.syncthingandroid.model.Gui;
 import com.nutomic.syncthingandroid.model.Options;
@@ -166,6 +165,7 @@ public class SettingsActivity extends SyncthingActivity {
         private PreferenceScreen   mCategoryRunConditions;
         private ListPreference     mPowerSource;
         private CheckBoxPreference mRunOnMobileData;
+        private CheckBoxPreference mRunOnRoaming;
         private CheckBoxPreference mRunOnWifi;
         private CheckBoxPreference mRunOnMeteredWifi;
         private CheckBoxPreference mUseWifiWhitelist;
@@ -285,7 +285,9 @@ public class SettingsActivity extends SyncthingActivity {
             mWifiSsidWhitelist =
                     (WifiSsidPreference) findPreference(Constants.PREF_WIFI_SSID_WHITELIST);
             mRunOnMobileData =
-                    (CheckBoxPreference) findPreference(Constants.PREF_RUN_ON_WIFI);
+                    (CheckBoxPreference) findPreference(Constants.PREF_RUN_ON_MOBILE_DATA);
+            mRunOnRoaming =
+                    (CheckBoxPreference) findPreference(Constants.PREF_RUN_ON_ROAMING);
             mPowerSource =
                     (ListPreference) findPreference(Constants.PREF_POWER_SOURCE);
             mRunInFlightMode =
@@ -294,6 +296,8 @@ public class SettingsActivity extends SyncthingActivity {
             mRunOnMeteredWifi.setEnabled(mRunOnWifi.isChecked());
             mUseWifiWhitelist.setEnabled(mRunOnWifi.isChecked());
             mWifiSsidWhitelist.setEnabled(mRunOnWifi.isChecked() && mUseWifiWhitelist.isChecked());
+
+            mRunOnRoaming.setEnabled(mRunOnMobileData.isChecked());
 
             screen.findPreference(Constants.PREF_POWER_SOURCE).setSummary(mPowerSource.getEntry());
             String wifiSsidSummary = TextUtils.join(", ", mPreferences.getStringSet(Constants.PREF_WIFI_SSID_WHITELIST, new HashSet<>()));
@@ -364,7 +368,7 @@ public class SettingsActivity extends SyncthingActivity {
             Preference verboseLog                   = findPreference(Constants.PREF_VERBOSE_LOG);
             Preference openIssueTracker             = findPreference(KEY_OPEN_ISSUE_TRACKER);
             Preference debugFacilitiesEnabled       = findPreference(Constants.PREF_DEBUG_FACILITIES_ENABLED);
-            Preference environmentVariables         = findPreference("environment_variables");
+            Preference environmentVariables         = findPreference(Constants.PREF_ENVIRONMENT_VARIABLES);
             Preference stResetDatabase              = findPreference("st_reset_database");
             Preference stResetDeltas                = findPreference("st_reset_deltas");
 
@@ -593,6 +597,9 @@ public class SettingsActivity extends SyncthingActivity {
                         getString(R.string.run_on_whitelisted_wifi_networks, wifiSsidSummary)
                     );
                     break;
+                case Constants.PREF_RUN_ON_MOBILE_DATA:
+                    mRunOnRoaming.setEnabled((Boolean) o);
+                    break;
             }
             mPendingRunConditions = true;
             return true;
@@ -760,14 +767,18 @@ public class SettingsActivity extends SyncthingActivity {
                     mPendingConfig = true;
                     break;
                 case Constants.PREF_ENVIRONMENT_VARIABLES:
-                    if (((String) o).matches("^(\\w+=[\\w:/\\.]+)?( \\w+=[\\w:/\\.]+)*$")) {
-                        mPendingConfig = true;
+                    // Verify if valid environment VAR=VALUE pairs were given as text string.
+                    if (!((String) o).isEmpty()) {
+                        for (String e : ((String) o).split(" ")) {
+                            if (e.split("=", 2).length != 2) {
+                                // Found an invalid "VAR=VALUE" pair.
+                                Toast.makeText(getActivity(), R.string.toast_invalid_environment_variables, Toast.LENGTH_SHORT)
+                                        .show();
+                                return false;
+                            }
+                        }
                     }
-                    else {
-                        Toast.makeText(getActivity(), R.string.toast_invalid_environment_variables, Toast.LENGTH_SHORT)
-                                .show();
-                        return false;
-                    }
+                    mPendingConfig = true;
                     break;
                 case Constants.PREF_USE_WAKE_LOCK:
                     mPendingConfig = true;
@@ -1134,7 +1145,11 @@ public class SettingsActivity extends SyncthingActivity {
          * Get current open file limit enforced by the Android OS.
          */
         private String getOpenFileLimit() {
-            String result = Util.runShellCommandGetOutput("/system/bin/ulimit -n", false);
+            String shellCommand = "ulimit -n";
+            if (Build.VERSION.SDK_INT < 29) {
+                shellCommand = "/system/bin/" + shellCommand;
+            }
+            String result = Util.runShellCommandGetOutput(shellCommand, false);
             if (TextUtils.isEmpty(result)) {
                 return "N/A";
             }
