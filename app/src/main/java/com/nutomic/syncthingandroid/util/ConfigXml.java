@@ -317,6 +317,15 @@ public class ConfigXml {
         // Disable "startBrowser" because it applies to desktop environments and cannot start a mobile browser app.
         Options defaultOptions = new Options();
         changed = setConfigElement(options, "startBrowser", Boolean.toString(defaultOptions.startBrowser)) || changed;
+        changed = setConfigElement(options, "databaseTuning", defaultOptions.databaseTuning) || changed;
+
+        /**
+         * Disable Syncthing's NAT feature because it causes kernel oops on some buggy kernels.
+         */
+        if (Constants.osHasKernelBugIssue505()) {
+            LogV("Disabling NAT option because a buggy kernel was detected. See https://github.com/Catfriend1/syncthing-android/issues/505 .");
+            changed = setConfigElement(options, "natEnabled", Boolean.toString(false)) || changed;
+        }
 
         // Save changes if we made any.
         if (changed) {
@@ -908,11 +917,12 @@ public class ConfigXml {
         // minHomeDiskFree
         options.maxConcurrentScans = getContentOrDefault(elementOptions.getElementsByTagName("maxConcurrentScans").item(0), options.maxConcurrentScans);
         options.unackedNotificationID = getContentOrDefault(elementOptions.getElementsByTagName("unackedNotificationID").item(0), options.unackedNotificationID);
-        options.crashReportingURL = getContentOrDefault(elementOptions.getElementsByTagName("crashReportingURL").item(0), options.crashReportingURL);
+        options.crURL = getContentOrDefault(elementOptions.getElementsByTagName("crashReportingURL").item(0), options.crURL);
         options.crashReportingEnabled =getContentOrDefault(elementOptions.getElementsByTagName("crashReportingEnabled").item(0), options.crashReportingEnabled);
         options.stunKeepaliveStartS = getContentOrDefault(elementOptions.getElementsByTagName("stunKeepaliveStartS").item(0), options.stunKeepaliveStartS);
         options.stunKeepaliveMinS = getContentOrDefault(elementOptions.getElementsByTagName("stunKeepaliveMinS").item(0), options.stunKeepaliveMinS);
         options.stunServer = getContentOrDefault(elementOptions.getElementsByTagName("stunServer").item(0), options.stunServer);
+        options.databaseTuning = getContentOrDefault(elementOptions.getElementsByTagName("databaseTuning").item(0), options.databaseTuning);
         return options;
     }
 
