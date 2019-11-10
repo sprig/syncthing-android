@@ -1,7 +1,8 @@
-* Syncthing v1.3.0
+* Syncthing v1.3.1
 * PLEASE NOTE: Android 10's Scoped Storage can or will render this app unusable in the future. This cannot be solved by devs, check wiki.
 * See detailed changelog on GitHub.
 Fixed
-* Welcome wizard: Quit app if user hits "Back" on first slide
+* photoShoot on Huawei Android 7 devices (#542)
+* Crash after taking picture on pre-nougat cyanogen OS (#534)
 Enhanced
-* "Syncthing Camera" - take pictures together with your "Syncthing" partner (#507)
+* Show "Local Additions" status for receiveOnly folders

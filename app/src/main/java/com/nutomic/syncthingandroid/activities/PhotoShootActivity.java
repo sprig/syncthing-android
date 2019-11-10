@@ -1,6 +1,7 @@
 package com.nutomic.syncthingandroid.activities;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -157,6 +158,10 @@ public class PhotoShootActivity extends AppCompatActivity {
         File photoFile = null;
         try {
             photoFile = createImageFile();
+            if (photoFile == null) {
+                Log.e(TAG, "openCameraIntent: photoFile == null");
+                return;
+            }
         } catch (IOException ex) {
             Log.e(TAG, "Error occurred while creating the temp image file");
             return;
@@ -165,6 +170,10 @@ public class PhotoShootActivity extends AppCompatActivity {
         if (photoFile != null) {
             Uri photoURI = FileProvider.getUriForFile(this, getPackageName() + ".provider", photoFile);
             pictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+                pictureIntent.setClipData(ClipData.newRawUri("", photoURI));
+                pictureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
 
             Log.d(TAG, "Launching take picture intent ...");
             lastPhotoURI = photoURI;
@@ -178,7 +187,11 @@ public class PhotoShootActivity extends AppCompatActivity {
                           Locale.getDefault()).format(new Date());
         String imageFileName = "IMG_" + timeStamp + "_";
         File storageDir =
-                    getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                    this.getExternalFilesDir(this, Environment.DIRECTORY_PICTURES);
+        if (storageDir == null) {
+            Log.e(TAG, "createImageFile: storageDir == null");
+            return null;
+        }
         File image = File.createTempFile(
                         imageFileName,  /* prefix */
                         ".jpg",         /* suffix */
@@ -270,5 +283,17 @@ public class PhotoShootActivity extends AppCompatActivity {
     private void updateButtons() {
         mBtnGrantCameraPerm.setVisibility(haveCameraPermission() ? View.GONE : View.VISIBLE);
         mBtnGrantStoragePerm.setVisibility(haveStoragePermission() ? View.GONE : View.VISIBLE);
+    }
+
+    public static File getExternalFilesDir(Context context, String type) {
+    	// There is a bug on Huawei devices running Android 7, which returns the wrong external path.
+        // See https://github.com/Catfriend1/syncthing-android/issues/541
+    	// ... and: https://stackoverflow.com/questions/39895579/fileprovider-error-onhuawei-devices
+        File[] externalFilesDirs = ContextCompat.getExternalFilesDirs(context, type);
+        if (externalFilesDirs.length > 0) {
+            return externalFilesDirs[0];
+        } else {
+            return null;
+        }
     }
 }
