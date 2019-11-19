@@ -14,7 +14,9 @@ import android.util.Log;
 
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
+import com.nutomic.syncthingandroid.activities.DeviceActivity;
 import com.nutomic.syncthingandroid.activities.FirstStartActivity;
+import com.nutomic.syncthingandroid.activities.FolderActivity;
 import com.nutomic.syncthingandroid.activities.LogActivity;
 import com.nutomic.syncthingandroid.activities.MainActivity;
 import com.nutomic.syncthingandroid.service.SyncthingService.State;
@@ -41,6 +43,7 @@ public class NotificationHandler {
     private final NotificationChannel mPersistentChannelWaiting;
     private final NotificationChannel mInfoChannel;
 
+    private String mLastNotificationText = null;
     private Boolean lastStartForegroundService = false;
     private Boolean appShutdownInProgress = false;
 
@@ -95,6 +98,14 @@ public class NotificationHandler {
      * Shows, updates or hides the notification.
      */
     public void updatePersistentNotification(SyncthingService service) {
+        // Persist previous notification details.
+        updatePersistentNotification(service, true, 0, 0);
+    }
+
+    public void updatePersistentNotification(SyncthingService service,
+                                                    Boolean persistNotificationDetails,
+                                                    int onlineDeviceCount,
+                                                    int totalSyncCompletion) {
         boolean startServiceOnBoot = mPreferences.getBoolean(Constants.PREF_START_SERVICE_ON_BOOT, false);
         State currentServiceState = service.getCurrentState();
         boolean syncthingRunning = currentServiceState == SyncthingService.State.ACTIVE ||
@@ -132,21 +143,47 @@ public class NotificationHandler {
         }
 
         // Prepare notification builder.
-        int title = R.string.syncthing_terminated;
+        String text;
         switch (currentServiceState) {
             case ERROR:
             case INIT:
+                text = mContext.getString(R.string.syncthing_terminated);
                 break;
             case DISABLED:
-                title = R.string.syncthing_disabled;
+                text = mContext.getString(R.string.syncthing_disabled);
                 break;
             case STARTING:
-                title = R.string.syncthing_starting;
+                text = mContext.getString(R.string.syncthing_starting);
                 break;
             case ACTIVE:
-                title = R.string.syncthing_active;
+                if (mLastNotificationText == null || !persistNotificationDetails) {
+                    if (totalSyncCompletion == -1) {
+                        mLastNotificationText = mContext.getString(
+                                R.string.syncthing_active_details,
+                                mContext.getString(R.string.no_remote_devices_connected)
+                        );
+                    } else if (totalSyncCompletion == 100) {
+                        mLastNotificationText = mContext.getString(
+                                R.string.syncthing_active_details,
+                                mContext.getResources().getQuantityString(
+                                        R.plurals.device_online_up_to_date,
+                                        onlineDeviceCount,
+                                        onlineDeviceCount
+                                )
+                        );
+                    } else {
+                        mLastNotificationText = mContext.getResources().getQuantityString(
+                                R.plurals.syncthing_active_syncing_device_online,
+                                onlineDeviceCount,
+                                totalSyncCompletion,
+                                onlineDeviceCount
+                        );
+                    }
+                }
+                text = mLastNotificationText;
                 break;
             default:
+                text = mContext.getString(R.string.syncthing_terminated);
                 break;
         }
 
@@ -159,7 +196,7 @@ public class NotificationHandler {
         Intent intent = new Intent(mContext, MainActivity.class);
         NotificationChannel channel = syncthingRunning ? mPersistentChannel : mPersistentChannelWaiting;
         NotificationCompat.Builder builder = getNotificationBuilder(channel)
-                .setContentTitle(mContext.getString(title))
+                .setContentTitle(text)
                 .setSmallIcon(R.drawable.ic_stat_notify)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
@@ -299,5 +336,75 @@ public class NotificationHandler {
             nb.setCategory(Notification.CATEGORY_ERROR);
         }
         mNotificationManager.notify(ID_STOP_BACKGROUND_WARNING, nb.build());
+    }
+
+    public void showDeviceConnectNotification(String deviceId, String deviceName) {
+        if (deviceId == null) {
+            Log.e(TAG, "showDeviceConnectNotification: deviceId == null");
+            return;
+        }
+        String title = mContext.getString(R.string.device_rejected,
+                deviceName.isEmpty() ? deviceId.substring(0, 7) : deviceName);
+        int notificationId = getNotificationIdFromText(title);
+
+        // Prepare "accept" action.
+        Intent intentAccept = new Intent(mContext, DeviceActivity.class)
+                .putExtra(DeviceActivity.EXTRA_NOTIFICATION_ID, notificationId)
+                .putExtra(DeviceActivity.EXTRA_IS_CREATE, true)
+                .putExtra(DeviceActivity.EXTRA_DEVICE_ID, deviceId)
+                .putExtra(DeviceActivity.EXTRA_DEVICE_NAME, deviceName);
+        PendingIntent piAccept = PendingIntent.getActivity(mContext, notificationId,
+            intentAccept, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Prepare "ignore" action.
+        Intent intentIgnore = new Intent(mContext, SyncthingService.class)
+                .putExtra(SyncthingService.EXTRA_NOTIFICATION_ID, notificationId)
+                .putExtra(SyncthingService.EXTRA_DEVICE_ID, deviceId);
+        intentIgnore.setAction(SyncthingService.ACTION_IGNORE_DEVICE);
+        PendingIntent piIgnore = PendingIntent.getService(mContext, 0,
+            intentIgnore, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Show notification.
+        showConsentNotification(notificationId, title, piAccept, piIgnore);
+    }
+
+    public void showFolderShareNotification(String deviceId,
+                                                String deviceName,
+                                                String folderId,
+                                                String folderLabel,
+                                                Boolean isNewFolder) {
+        if (deviceId == null) {
+            Log.e(TAG, "showFolderShareNotification: deviceId == null");
+            return;
+        }
+        if (folderId == null) {
+            Log.e(TAG, "showFolderShareNotification: folderId == null");
+            return;
+        }
+        String title = mContext.getString(R.string.folder_rejected, deviceName,
+                folderLabel.isEmpty() ? folderId : folderLabel + " (" + folderId + ")");
+        int notificationId = getNotificationIdFromText(title);
+
+        // Prepare "accept" action.
+        Intent intentAccept = new Intent(mContext, FolderActivity.class)
+                .putExtra(FolderActivity.EXTRA_NOTIFICATION_ID, notificationId)
+                .putExtra(FolderActivity.EXTRA_IS_CREATE, isNewFolder)
+                .putExtra(FolderActivity.EXTRA_DEVICE_ID, deviceId)
+                .putExtra(FolderActivity.EXTRA_FOLDER_ID, folderId)
+                .putExtra(FolderActivity.EXTRA_FOLDER_LABEL, folderLabel);
+        PendingIntent piAccept = PendingIntent.getActivity(mContext, notificationId,
+            intentAccept, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Prepare "ignore" action.
+        Intent intentIgnore = new Intent(mContext, SyncthingService.class)
+                .putExtra(SyncthingService.EXTRA_NOTIFICATION_ID, notificationId)
+                .putExtra(SyncthingService.EXTRA_DEVICE_ID, deviceId)
+                .putExtra(SyncthingService.EXTRA_FOLDER_ID, folderId);
+        intentIgnore.setAction(SyncthingService.ACTION_IGNORE_FOLDER);
+        PendingIntent piIgnore = PendingIntent.getService(mContext, 0,
+            intentIgnore, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Show notification.
+        showConsentNotification(notificationId, title, piAccept, piIgnore);
     }
 }

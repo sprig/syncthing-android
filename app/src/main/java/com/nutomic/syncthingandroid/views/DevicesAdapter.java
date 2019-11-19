@@ -8,9 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.nutomic.syncthingandroid.R;
+import com.nutomic.syncthingandroid.model.Connection;
 import com.nutomic.syncthingandroid.model.Connections;
 import com.nutomic.syncthingandroid.model.Device;
 import com.nutomic.syncthingandroid.service.RestApi;
@@ -32,10 +34,14 @@ public class DevicesAdapter extends ArrayAdapter<Device> {
      */
     private static final long ACTIVE_SYNC_BITS_PER_SECOND_THRESHOLD = 50 * 1024 * 8;
 
-    private Connections mConnections;
+    private RestApi mRestApi;
 
     public DevicesAdapter(Context context) {
         super(context, R.layout.item_device_list);
+    }
+
+    public void setRestApi(RestApi restApi) {
+        mRestApi = restApi;
     }
 
     @Override
@@ -49,6 +55,7 @@ public class DevicesAdapter extends ArrayAdapter<Device> {
 
         View rateInOutView = convertView.findViewById(R.id.rateInOutContainer);
         TextView name = convertView.findViewById(R.id.name);
+        ProgressBar progressBar = convertView.findViewById(R.id.progressBar);
         TextView status = convertView.findViewById(R.id.status);
         TextView download = convertView.findViewById(R.id.download);
         TextView upload = convertView.findViewById(R.id.upload);
@@ -58,13 +65,9 @@ public class DevicesAdapter extends ArrayAdapter<Device> {
         name.setText(getItem(position).getDisplayName());
         Resources r = getContext().getResources();
 
-        Connections.Connection conn = null;
-        if (mConnections != null && mConnections.connections.containsKey(deviceId)) {
-            conn = mConnections.connections.get(deviceId);
-        }
-
-        if (conn == null) {
+        if  (mRestApi == null || !mRestApi.isConfigLoaded()) {
             // Syncthing is not running.
+            progressBar.setVisibility(GONE);
             rateInOutView.setVisibility(GONE);
             status.setVisibility(GONE);
             status.setText(r.getString(R.string.device_state_unknown));
@@ -72,7 +75,10 @@ public class DevicesAdapter extends ArrayAdapter<Device> {
             return convertView;
         }
 
+        final Connection conn = mRestApi.getRemoteDeviceStatus(deviceId);
+        final int completion = mRestApi.getRemoteDeviceCompletion(deviceId);
         if (conn.paused) {
+            progressBar.setVisibility(GONE);
             rateInOutView.setVisibility(GONE);
             status.setVisibility(VISIBLE);
             status.setText(r.getString(R.string.device_paused));
@@ -85,7 +91,10 @@ public class DevicesAdapter extends ArrayAdapter<Device> {
             upload.setText(Util.readableTransferRate(getContext(), conn.outBits));
             rateInOutView.setVisibility(VISIBLE);
             status.setVisibility(VISIBLE);
-            if (conn.completion == 100) {
+
+            Boolean syncingState = !(completion == 100);
+            progressBar.setVisibility(syncingState ? VISIBLE : GONE);
+            if (!syncingState) {
                 /**
                  * UI polish - We distinguish the following cases:
                  * a) conn.completion == 100 because of the model init assignment, data transmission ongoing.
@@ -101,37 +110,19 @@ public class DevicesAdapter extends ArrayAdapter<Device> {
                     status.setTextColor(ContextCompat.getColor(getContext(), R.color.text_green));
                 }
             } else {
-                status.setText(r.getString(R.string.device_syncing, conn.completion));
+                progressBar.setProgress(completion);
+                status.setText(r.getString(R.string.device_syncing, completion));
                 status.setTextColor(ContextCompat.getColor(getContext(), R.color.text_blue));
             }
             return convertView;
         }
 
         // !conn.connected
+        progressBar.setVisibility(GONE);
         rateInOutView.setVisibility(GONE);
         status.setVisibility(VISIBLE);
         status.setText(r.getString(R.string.device_disconnected));
         status.setTextColor(ContextCompat.getColor(getContext(), R.color.text_red));
         return convertView;
-    }
-
-    /**
-     * Requests new connection info for all devices visible in listView.
-     */
-    public void updateDeviceStatus(RestApi restApi) {
-        if (restApi == null || !restApi.isConfigLoaded()) {
-            // Syncthing is not running. Clear last state.
-            mConnections = null;
-            return;
-        }
-        for (int i = 0; i < getCount(); i++) {
-            restApi.getConnections(this::onReceiveConnections);
-        }
-    }
-
-    private void onReceiveConnections(Connections connections) {
-        mConnections = connections;
-        // This will invoke "getView" for all elements.
-        notifyDataSetChanged();
     }
 }

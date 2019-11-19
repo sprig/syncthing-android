@@ -38,6 +38,7 @@ public class FolderListFragment extends ListFragment implements SyncthingService
 
     private static final String TAG = "FolderListFragment";
 
+    private Boolean ENABLE_DEBUG_LOG = false;
     private Boolean ENABLE_VERBOSE_LOG = false;
 
     @Inject SharedPreferences mPreferences;
@@ -127,7 +128,9 @@ public class FolderListFragment extends ListFragment implements SyncthingService
         if (mainActivity.isFinishing()) {
             return;
         }
-        LogV("Invoking updateList on UI thread");
+        if (ENABLE_DEBUG_LOG) {
+            LogV("Invoking updateList on UI thread");
+        }
         mainActivity.runOnUiThread(FolderListFragment.this::updateList);
     }
 
@@ -166,12 +169,12 @@ public class FolderListFragment extends ListFragment implements SyncthingService
             mAdapter = new FoldersAdapter(activity);
             setListAdapter(mAdapter);
         }
+        mAdapter.setRestApi(restApi);
 
         // Prevent scroll position reset due to list update from clear().
         mAdapter.setNotifyOnChange(false);
         mAdapter.clear();
         mAdapter.addAll(folders);
-        mAdapter.updateFolderStatus(restApi);
         mAdapter.notifyDataSetChanged();
         setListShown(true);
     }
