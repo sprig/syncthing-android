@@ -13,6 +13,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -24,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
@@ -48,6 +50,8 @@ import com.nutomic.syncthingandroid.fragments.DrawerFragment;
 import com.nutomic.syncthingandroid.fragments.FolderListFragment;
 import com.nutomic.syncthingandroid.fragments.StatusFragment;
 import com.nutomic.syncthingandroid.fragments.WidiFragment;
+import com.nutomic.syncthingandroid.service.AppPrefs;
+import com.nutomic.syncthingandroid.service.Constants;
 import com.nutomic.syncthingandroid.service.RestApi;
 import com.nutomic.syncthingandroid.service.SyncthingService;
 import com.nutomic.syncthingandroid.service.SyncthingServiceBinder;
@@ -89,6 +93,9 @@ public class MainActivity extends SyncthingActivity
         implements SyncthingService.OnServiceStateChangeListener {
 
     private static final String TAG = "MainActivity";
+
+    private Boolean ENABLE_VERBOSE_LOG = false;
+
     private static final String IS_SHOWING_RESTART_DIALOG = "RESTART_DIALOG_STATE";
     private static final String IS_QRCODE_DIALOG_DISPLAYED = "QRCODE_DIALOG_STATE";
     private static final String QRCODE_BITMAP_KEY = "QRCODE_BITMAP";
@@ -128,6 +135,16 @@ public class MainActivity extends SyncthingActivity
     private Boolean oneTimeShot = true;
 
     @Inject SharedPreferences mPreferences;
+
+    private final Handler mUIRefreshHandler = new Handler();
+
+    private Runnable mUIRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            onTimerEvent();
+            mUIRefreshHandler.postDelayed(this, Constants.GUI_UPDATE_INTERVAL);
+        }
+    };
 
     /**
      * Handles various dialogs based on current state.
@@ -170,6 +187,7 @@ public class MainActivity extends SyncthingActivity
                 finish();
                 break;
         }
+        updateTotalSyncProgressBar();
     }
 
     /**
@@ -192,6 +210,7 @@ public class MainActivity extends SyncthingActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((SyncthingApp) getApplication()).component().inject(this);
+        ENABLE_VERBOSE_LOG = AppPrefs.getPrefVerboseLog(mPreferences);
 
         setContentView(R.layout.activity_main);
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -349,7 +368,8 @@ public class MainActivity extends SyncthingActivity
     }
 
     @Override
-    protected void onPause() {
+    public void onPause() {
+        stopUIRefreshHandler();
         super.onPause();
     }
 
@@ -360,6 +380,8 @@ public class MainActivity extends SyncthingActivity
             PackageManager.PERMISSION_GRANTED)) {
             startActivity(new Intent(this, FirstStartActivity.class));
             this.finish();
+            super.onResume();
+            return;
         }
 
         // Evaluate run conditions to detect changes made to the metered wifi flags.
@@ -367,6 +389,8 @@ public class MainActivity extends SyncthingActivity
         if (mSyncthingService != null) {
             mSyncthingService.evaluateRunConditions();
         }
+
+        startUIRefreshHandler();
         super.onResume();
     }
 
@@ -455,6 +479,17 @@ public class MainActivity extends SyncthingActivity
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    private void startUIRefreshHandler() {
+        LogV("startUIRefreshHandler");
+        mUIRefreshHandler.removeCallbacks(mUIRefreshRunnable);
+        mUIRefreshHandler.post(mUIRefreshRunnable);
+    }
+
+    private void stopUIRefreshHandler() {
+        LogV("stopUIRefreshHandler");
+        mUIRefreshHandler.removeCallbacks(mUIRefreshRunnable);
     }
 
     public void showRestartDialog(){
@@ -617,6 +652,48 @@ public class MainActivity extends SyncthingActivity
                     .setNeutralButton(R.string.open_website, listener)
                     .show();
         });
+    }
+
+    // The timer is periodically triggering while the user is looking at the UI.
+    private void onTimerEvent() {
+        updateTotalSyncProgressBar();
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void updateTotalSyncProgressBar() {
+        View topRelTotalSyncProgress = (View) findViewById(R.id.topRelTotalSyncProgress);
+        ProgressBar pbTotalSyncComplete = (ProgressBar) findViewById(R.id.pbTotalSyncComplete);
+        TextView tvTotalSyncComplete = (TextView) findViewById(R.id.tvTotalSyncComplete);
+        if (topRelTotalSyncProgress == null ||
+                pbTotalSyncComplete == null ||
+                tvTotalSyncComplete == null) {
+            return;
+        }
+
+        RestApi restApi = getApi();
+        if (restApi == null || !restApi.isConfigLoaded()) {
+            topRelTotalSyncProgress.setVisibility(View.GONE);
+            return;
+        }
+
+        int totalSyncCompletePercent = restApi.getTotalSyncCompletion();
+        Boolean showTotalSyncProgress = (
+                (mSyncthingServiceState == SyncthingService.State.ACTIVE) &&
+                (totalSyncCompletePercent != -1)
+        );
+        if (!showTotalSyncProgress) {
+            topRelTotalSyncProgress.setVisibility(View.GONE);
+            return;
+        }
+        topRelTotalSyncProgress.setVisibility(View.VISIBLE);
+        pbTotalSyncComplete.setProgress(totalSyncCompletePercent);
+        tvTotalSyncComplete.setText(Integer.toString(totalSyncCompletePercent));
+    }
+
+    private void LogV(String logMessage) {
+        if (ENABLE_VERBOSE_LOG) {
+            Log.v(TAG, logMessage);
+        }
     }
 
 }
