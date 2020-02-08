@@ -1,8 +1,9 @@
 from __future__ import print_function
 import os
 import os.path
-import sys
+import shutil
 import subprocess
+import sys
 import platform
 #
 # Script Compatibility:
@@ -13,11 +14,12 @@ import platform
 SUPPORTED_PYTHON_PLATFORMS = ['Windows', 'Linux', 'Darwin']
 
 # Leave empty to auto-detect version by 'git describe'.
-FORCE_DISPLAY_SYNCTHING_VERSION = 'v1.3.2-preview.1'
+FORCE_DISPLAY_SYNCTHING_VERSION = ''
+FILENAME_SYNCTHING_BINARY = 'libsyncthingnative.so'
 
-GO_VERSION = '1.13.4'
-GO_EXPECTED_SHASUM_LINUX = '692d17071736f74be04a72a06dab9cac1cd759377bd85316e52b2227604c004c'
-GO_EXPECTED_SHASUM_WINDOWS = 'ab8b7f7a2a4f7b58720fb2128b32c7471092961ff46a01d9384fb489d8212a0b'
+GO_VERSION = '1.13.5'
+GO_EXPECTED_SHASUM_LINUX = '512103d7ad296467814a6e3f635631bd35574cab3369a97a323c9a585ccaa569'
+GO_EXPECTED_SHASUM_WINDOWS = '027275e04d795fbadc898ba7a50ed0ab2161ff4c5e613c94dbb066b2ca24ec11'
 
 NDK_VERSION = 'r20b'
 NDK_EXPECTED_SHASUM_LINUX = 'd903fdf077039ad9331fb6c3bee78aa46d45527b'
@@ -41,12 +43,6 @@ BUILD_TARGETS = [
         'goarch': '386',
         'jni_dir': 'x86',
         'clang': 'i686-linux-android16-clang',
-    },
-    {
-        'arch': 'x86_64',
-        'goarch': 'amd64',
-        'jni_dir': 'x86_64',
-        'clang': 'x86_64-linux-android21-clang',
     }
 ]
 
@@ -65,13 +61,11 @@ def get_min_sdk(project_dir):
 
     fail('Failed to find minSdkVersion')
 
-def which(program):
+def which_raw(program):
     import os
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
-    if (sys.platform == 'win32'):
-        program += ".exe"
     fpath, fname = os.path.split(program)
     if fpath:
         if is_exe(program):
@@ -83,6 +77,17 @@ def which(program):
                 return exe_file
 
     return None
+
+def which(program):
+    if (sys.platform == 'win32'):
+        which_result = which_raw(program + ".bat")
+        if not which_result:
+            which_result = which_raw(program + ".cmd")
+            if not which_result:
+                which_result = which_raw(program + ".exe")
+        return which_result
+    else:
+        return which_raw(program)
 
 def change_permissions_recursive(path, mode):
     import os
@@ -120,7 +125,7 @@ def install_git():
         zip_fullfn = urlretrieve(url, zip_fullfn)[0]
     print('Downloaded MinGit to:', zip_fullfn)
 
-    # Verfiy SHA-256 checksum of downloaded files.
+    # Verify SHA-256 checksum of downloaded files.
     with open(zip_fullfn, 'rb') as f:
         contents = f.read()
         found_shasum = hashlib.sha256(contents).hexdigest()
@@ -173,7 +178,7 @@ def install_go():
         tar_gz_fullfn = urlretrieve(url, tar_gz_fullfn)[0]
     print('Downloaded prebuilt-go to:', tar_gz_fullfn)
 
-    # Verfiy SHA-256 checksum of downloaded files.
+    # Verify SHA-256 checksum of downloaded files.
     with open(tar_gz_fullfn, 'rb') as f:
         contents = f.read()
         found_shasum = hashlib.sha256(contents).hexdigest()
@@ -233,7 +238,7 @@ def install_ndk():
         zip_fullfn = urlretrieve(url, zip_fullfn)[0]
     print('Downloaded NDK to:', zip_fullfn)
 
-    # Verfiy SHA-1 checksum of downloaded files.
+    # Verify SHA-1 checksum of downloaded files.
     with open(zip_fullfn, 'rb') as f:
         contents = f.read()
         found_shasum = hashlib.sha1(contents).hexdigest()
@@ -424,11 +429,18 @@ for target in BUILD_TARGETS:
     target_dir = os.path.join(project_dir, 'app', 'src', 'main', 'jniLibs', target['jni_dir'])
     if not os.path.isdir(target_dir):
         os.makedirs(target_dir)
-    target_artifact = os.path.join(target_dir, 'libsyncthing.so')
+    target_artifact = os.path.join(target_dir, FILENAME_SYNCTHING_BINARY)
     if os.path.exists(target_artifact):
         os.unlink(target_artifact)
     os.rename(os.path.join(syncthing_dir, 'syncthing'), target_artifact)
 
     print('*** Finished build for', target['arch'])
+
+print('Copy x86 artifact to x86_64 folder, workaround for issue #583')
+target_dir = os.path.join(project_dir, 'app', 'src', 'main', 'jniLibs', 'x86_64')
+if not os.path.isdir(target_dir):
+    os.makedirs(target_dir)
+shutil.copy(os.path.join(project_dir, 'app', 'src', 'main', 'jniLibs', 'x86', FILENAME_SYNCTHING_BINARY),
+        os.path.join(target_dir, FILENAME_SYNCTHING_BINARY))
 
 print('All builds finished')
