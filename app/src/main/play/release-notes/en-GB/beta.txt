@@ -1,10 +1,10 @@
-* Syncthing v1.3.4
-* Updated build dependencies.
-* PLEASE NOTE: Android 10's Scoped Storage can or will render this app unusable in the future. This cannot be solved by devs, check wiki.
-* See detailed changelog on GitHub.
+* Syncthing v1.4.2
 
 Fixed
--
+--
 
 Enhanced
--
+--
+- Make GUI faster where it displays cached stats (#628)
+- Devices tab - Show shared folders below device (#627)
+- Device dialog - Edit folders shared with a device (#611)
