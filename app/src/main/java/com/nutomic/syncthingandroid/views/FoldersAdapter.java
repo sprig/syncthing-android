@@ -123,7 +123,7 @@ public class FoldersAdapter extends ArrayAdapter<Folder> {
         } else {
             if (folder.paused) {
                 binding.state.setText(mContext.getString(R.string.state_paused));
-                binding.state.setTextColor(ContextCompat.getColor(mContext, R.color.text_black));
+                binding.state.setTextColor(ContextCompat.getColor(mContext, R.color.text_purple));
             } else {
                 switch(folderStatus.state) {
                     case "idle":
@@ -146,6 +146,10 @@ public class FoldersAdapter extends ArrayAdapter<Folder> {
                     case "scanning":
                         binding.state.setText(mContext.getString(R.string.state_scanning));
                         binding.state.setTextColor(ContextCompat.getColor(mContext, R.color.text_blue));
+                        break;
+                    case "sync-waiting":
+                        binding.state.setText(mContext.getString(R.string.state_sync_waiting));
+                        binding.state.setTextColor(ContextCompat.getColor(mContext, R.color.text_orange));
                         break;
                     case "syncing":
                         binding.progressBar.setProgress((int) cachedFolderStatus.completion);

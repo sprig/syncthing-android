@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -821,31 +822,38 @@ public class ConfigXml {
         return devices;
     }
 
-    public void addDevice(final Device device) {
-        Log.d(TAG, "addDevice: deviceID=" + device.deviceID);
-        Node nodeConfig = mConfig.getDocumentElement();
-        Node nodeDevice = mConfig.createElement("device");
-        nodeConfig.appendChild(nodeDevice);
-        Element elementDevice = (Element) nodeDevice;
-        elementDevice.setAttribute("id", device.deviceID);
-        updateDevice(device);
+    /**
+     * Adds or updates a device identified by its device ID.
+     */
+    public void updateDevice(final Device device) {
+        NodeList childNodes;
+        boolean deviceExists = false;
 
-        // Remove corresponding "pendingDevice" node if any exists.
-        List<PendingDevice> pendingDevices = new ArrayList<>();
-        NodeList nodePendingDevice = mConfig.getDocumentElement().getElementsByTagName("pendingDevice");
-        for (int i = 0; i < nodePendingDevice.getLength(); i++) {
-            Element r = (Element) nodePendingDevice.item(i);
-            if (getAttributeOrDefault(r, "id", "").equals(device.deviceID)) {
-                Log.d(TAG, "addDevice: Removing pendingDevice [" + device.deviceID + "]");
-                removeChildElementFromTextNode((Element) r.getParentNode(), r);
-                break;
+        // Prevent enumerating "<device>" tags below "<folder>" nodes by enumerating child nodes manually.
+        childNodes = mConfig.getDocumentElement().getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node node = childNodes.item(i);
+            if (node.getNodeName().equals("device")) {
+                Element r = (Element) node;
+                if (device.deviceID.equals(getAttributeOrDefault(r, "id", ""))) {
+                    deviceExists = true;
+                    break;
+                }
             }
         }
-    }
 
-    public void updateDevice(final Device device) {
+        // If the device does not exist in config, add it.
+        if (!deviceExists) {
+            Log.d(TAG, "updateDevice: [addDevice] Adding deviceID='" + device.deviceID + "' to config ...");
+            Node nodeConfig = mConfig.getDocumentElement();
+            Node nodeDevice = mConfig.createElement("device");
+            nodeConfig.appendChild(nodeDevice);
+            Element elementDevice = (Element) nodeDevice;
+            elementDevice.setAttribute("id", device.deviceID);
+        }
+
         // Prevent enumerating "<device>" tags below "<folder>" nodes by enumerating child nodes manually.
-        NodeList childNodes = mConfig.getDocumentElement().getChildNodes();
+        childNodes = mConfig.getDocumentElement().getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node node = childNodes.item(i);
             if (node.getNodeName().equals("device")) {
@@ -879,8 +887,37 @@ public class ConfigXml {
                         }
                     }
 
+                    // Folders
+                    Set<String> deviceSharesFolders = device.getFolderIDs();
+                    for (Folder folder : getFolders()) {
+                        if (deviceSharesFolders.contains(folder.id)) {
+                            LogV("updateDevice: Device '" + device.getDisplayName() + "' shares folder '" + folder.toString() + "'");
+                            folder.addDevice(device);
+                            updateFolder(folder);
+                        } else {
+                            LogV("updateDevice: Device '" + device.getDisplayName() + "' does not share folder '" + folder.toString() + "'");
+                            folder.removeDevice(device.deviceID);
+                            updateFolder(folder);
+                        }
+                    }
+
                     break;
                 }
+            }
+        }
+
+        /**
+         * Remove corresponding "pendingDevice" node if any exists.
+         * Required when adding a device, but does not hurt to do during update.
+         */
+        List<PendingDevice> pendingDevices = new ArrayList<>();
+        NodeList nodePendingDevice = mConfig.getDocumentElement().getElementsByTagName("pendingDevice");
+        for (int i = 0; i < nodePendingDevice.getLength(); i++) {
+            Element r = (Element) nodePendingDevice.item(i);
+            if (getAttributeOrDefault(r, "id", "").equals(device.deviceID)) {
+                Log.d(TAG, "addDevice: Removing pendingDevice [" + device.deviceID + "]");
+                removeChildElementFromTextNode((Element) r.getParentNode(), r);
+                break;
             }
         }
     }
@@ -988,7 +1025,7 @@ public class ConfigXml {
         options.defaultFolderPath = getContentOrDefault(elementOptions.getElementsByTagName("defaultFolderPath").item(0), "");
         options.setLowPriority = getContentOrDefault(elementOptions.getElementsByTagName("setLowPriority").item(0), options.setLowPriority);
         // minHomeDiskFree
-        options.maxConcurrentScans = getContentOrDefault(elementOptions.getElementsByTagName("maxConcurrentScans").item(0), options.maxConcurrentScans);
+        options.maxFolderConcurrency = getContentOrDefault(elementOptions.getElementsByTagName("maxFolderConcurrency").item(0), options.maxFolderConcurrency);
         options.unackedNotificationID = getContentOrDefault(elementOptions.getElementsByTagName("unackedNotificationID").item(0), options.unackedNotificationID);
         options.crURL = getContentOrDefault(elementOptions.getElementsByTagName("crashReportingURL").item(0), options.crURL);
         options.crashReportingEnabled =getContentOrDefault(elementOptions.getElementsByTagName("crashReportingEnabled").item(0), options.crashReportingEnabled);
@@ -996,6 +1033,7 @@ public class ConfigXml {
         options.stunKeepaliveMinS = getContentOrDefault(elementOptions.getElementsByTagName("stunKeepaliveMinS").item(0), options.stunKeepaliveMinS);
         options.stunServer = getContentOrDefault(elementOptions.getElementsByTagName("stunServer").item(0), options.stunServer);
         options.databaseTuning = getContentOrDefault(elementOptions.getElementsByTagName("databaseTuning").item(0), options.databaseTuning);
+        options.maxConcurrentIncomingRequestKiB = getContentOrDefault(elementOptions.getElementsByTagName("maxConcurrentIncomingRequestKiB").item(0), options.maxConcurrentIncomingRequestKiB);
         return options;
     }
 
