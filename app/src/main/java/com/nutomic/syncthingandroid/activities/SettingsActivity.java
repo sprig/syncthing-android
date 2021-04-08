@@ -178,7 +178,6 @@ public class SettingsActivity extends SyncthingActivity {
         /* Behaviour */
         private CheckBoxPreference mStartServiceOnBoot;
         private CheckBoxPreference mUseRoot;
-        private ListPreference     mSuggestNewFolderRoot;
 
         /* Syncthing Options */
         private PreferenceScreen   mCategorySyncthingOptions;
@@ -307,11 +306,6 @@ public class SettingsActivity extends SyncthingActivity {
             );
 
             mCategoryRunConditions = (PreferenceScreen) findPreference("category_run_conditions");
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                // Remove pref as we use JobScheduler implementation which is not available on API < 21.
-                CheckBoxPreference prefRunOnTimeSchedule = (CheckBoxPreference) findPreference(Constants.PREF_RUN_ON_TIME_SCHEDULE);
-                mCategoryRunConditions.removePreference(prefRunOnTimeSchedule);
-            }
             setPreferenceCategoryChangeListener(mCategoryRunConditions, this::onRunConditionPreferenceChange);
 
             /* User Interface */
@@ -323,13 +317,6 @@ public class SettingsActivity extends SyncthingActivity {
                     (CheckBoxPreference) findPreference(Constants.PREF_START_SERVICE_ON_BOOT);
             mUseRoot =
                     (CheckBoxPreference) findPreference(Constants.PREF_USE_ROOT);
-            mSuggestNewFolderRoot =
-                    (ListPreference) findPreference(Constants.PREF_SUGGEST_NEW_FOLDER_ROOT);
-            screen.findPreference(Constants.PREF_SUGGEST_NEW_FOLDER_ROOT).setSummary(mSuggestNewFolderRoot.getEntry());
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                // Remove preference as FileUtils#getExternalFilesDirUri is only supported on API 21+ (LOLLIPOP+).
-                categoryBehaviour.removePreference(mSuggestNewFolderRoot);
-            }
             setPreferenceCategoryChangeListener(categoryBehaviour, this::onBehaviourPreferenceChange);
 
             /* Syncthing Options */
@@ -609,11 +596,11 @@ public class SettingsActivity extends SyncthingActivity {
             switch (preference.getKey()) {
                 case Constants.PREF_APP_THEME:
                     String newTheme = (String) o;
-                    String prevTheme = mPreferences.getString(Constants.PREF_APP_THEME, Constants.APP_THEME_LIGHT);
+                    String prevTheme = mPreferences.getString(Constants.PREF_APP_THEME, Constants.APP_THEME_FOLLOW_SYSTEM);
                     if (!newTheme.equals(prevTheme)) {
                         ConfigRouter config = new ConfigRouter(getActivity());
                         Gui gui = config.getGui(mRestApi);
-                        gui.theme = newTheme.equals(Constants.APP_THEME_LIGHT) ? "default" : "dark";
+                        gui.theme = newTheme.equals(Constants.APP_THEME_DARK) ? "dark" : "default";
                         config.updateGui(mRestApi, gui);
                         getAppRestartConfirmationDialog(getActivity())
                                 .show();
@@ -635,10 +622,6 @@ public class SettingsActivity extends SyncthingActivity {
                         new Thread(() -> Util.fixAppDataPermissions(getActivity())).start();
                         mPendingConfig = true;
                     }
-                    break;
-                case Constants.PREF_SUGGEST_NEW_FOLDER_ROOT:
-                    mSuggestNewFolderRoot.setValue(o.toString());
-                    preference.setSummary(mSuggestNewFolderRoot.getEntry());
                     break;
                 case Constants.PREF_LAUNCHER_SHOW_CAMERA_ICON:
                     if (!showHideLauncherCameraIcon((Boolean) o)) {
@@ -732,7 +715,7 @@ public class SettingsActivity extends SyncthingActivity {
                     mRestApi.editSettings(mGui, mOptions);
                     if (mRestApi != null &&
                             mSyncthingService.getCurrentState() != SyncthingService.State.DISABLED) {
-                        mRestApi.saveConfigAndRestart();
+                        mRestApi.sendConfig();
                         mPendingConfig = false;
                     }
                     return true;
@@ -751,7 +734,7 @@ public class SettingsActivity extends SyncthingActivity {
                 if (mPendingConfig) {
                     if (mRestApi != null &&
                             mSyncthingService.getCurrentState() != SyncthingService.State.DISABLED) {
-                        mRestApi.saveConfigAndRestart();
+                        mRestApi.sendConfig();
                         mPendingConfig = false;
                     }
                 }
@@ -848,6 +831,8 @@ public class SettingsActivity extends SyncthingActivity {
                     new AlertDialog.Builder(getActivity())
                             .setMessage(R.string.dialog_confirm_import)
                             .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                                // Import will discard our pending config changes.
+                                mPendingConfig = false;
                                 new ImportConfigTask(this, mSyncthingService)
                                     .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                             })
@@ -1148,7 +1133,7 @@ public class SettingsActivity extends SyncthingActivity {
             if (TextUtils.isEmpty(result)) {
                 return "N/A";
             }
-            String resultParts[] = result.split("\\s+");
+            String[] resultParts = result.split("\\s+");
             if (resultParts.length == 0) {
                 return "N/A";
             }

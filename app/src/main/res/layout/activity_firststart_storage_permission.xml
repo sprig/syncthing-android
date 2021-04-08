@@ -5,6 +5,18 @@
     android:layout_height="match_parent"
     android:background="@color/bg_screen2">
 
+    <Button
+        android:id="@+id/btnConfigExport"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/storage_permission_emergency_export"
+        app:drawableStartCompat="@drawable/ic_folder_send_only"
+        app:drawableLeftCompat="@drawable/ic_folder_send_only"
+        android:text="@string/storage_permission_emergency_export"
+        android:textSize="12sp"
+        android:visibility="gone"
+        style="@style/Theme.Syncthing.GreyButton" />
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -14,7 +26,6 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/welcome_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
@@ -26,7 +37,6 @@
             android:textSize="@dimen/welcome_title" />
 
         <TextView
-            android:id="@+id/slide_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
@@ -48,8 +58,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:contentDescription="@string/grant_permission"
-            android:drawableStart="@android:drawable/ic_menu_save"
-            android:drawableLeft="@android:drawable/ic_menu_save"
+            app:drawableStartCompat="@android:drawable/ic_menu_save"
+            app:drawableLeftCompat="@android:drawable/ic_menu_save"
             android:paddingStart="@dimen/grant_button_padding"
             android:paddingLeft="@dimen/grant_button_padding"
             android:paddingEnd="@dimen/grant_button_padding"

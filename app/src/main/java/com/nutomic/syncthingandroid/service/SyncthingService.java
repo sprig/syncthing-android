@@ -1,5 +1,6 @@
 package com.nutomic.syncthingandroid.service;
 
+import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -7,11 +8,13 @@ import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.Manifest;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import android.util.Log;
 
 import com.android.PRNGFixes;
 import com.annimon.stream.Stream;
@@ -21,8 +24,6 @@ import com.nutomic.syncthingandroid.SyncthingApp;
 import com.nutomic.syncthingandroid.http.PollWebGuiAvailableTask;
 import com.nutomic.syncthingandroid.model.Device;
 import com.nutomic.syncthingandroid.model.Folder;
-import com.nutomic.syncthingandroid.model.PendingDevice;
-import com.nutomic.syncthingandroid.model.PendingFolder;
 import com.nutomic.syncthingandroid.util.ConfigRouter;
 import com.nutomic.syncthingandroid.util.ConfigXml;
 import com.nutomic.syncthingandroid.util.FileUtils;
@@ -239,9 +240,10 @@ public class SyncthingService extends Service {
          * see issue: https://github.com/syncthing/syncthing-android/issues/871
          * We need to recheck if we still have the storage permission.
          */
-        mStoragePermissionGranted = (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
-                PackageManager.PERMISSION_GRANTED);
+        mStoragePermissionGranted = haveStoragePermission();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            mStoragePermissionGranted = mStoragePermissionGranted && haveAllFilesAccessPermission();
+        }
 
         if (mNotificationHandler != null) {
             mNotificationHandler.setAppShutdownInProgress(false);
@@ -387,42 +389,6 @@ public class SyncthingService extends Service {
                 }
                 stopSelf();
                 return;
-            }
-
-            // Check if pending devices are waiting for approval.
-            List<PendingDevice> pendingDevices = configXml.getPendingDevices();
-            if (pendingDevices != null) {
-                for (final PendingDevice pendingDevice : pendingDevices) {
-                    if (mNotificationHandler != null && pendingDevice.deviceID != null) {
-                        Log.d(TAG, "AFSIS: pendingDevice.deviceID = " + pendingDevice.deviceID + "('" + pendingDevice.name + "')");
-                        mNotificationHandler.showDeviceConnectNotification(
-                            pendingDevice.deviceID,
-                            pendingDevice.name
-                        );
-                    }
-                }
-            }
-
-            // Loop through devices.
-            List<Device> devices = configXml.getDevices(false);
-            if (devices != null) {
-                for (final Device device : devices) {
-                    // Check if folder approval notifications are pending for the device.
-                    for (final PendingFolder pendingFolder : device.pendingFolders) {
-                        if (mNotificationHandler != null && pendingFolder.id != null) {
-                            Log.d(TAG, "AFSIS: pendingFolder.id = " + pendingFolder.id + "('" + pendingFolder.label + "')");
-                            Boolean isNewFolder = Stream.of(configXml.getFolders())
-                                    .noneMatch(f -> f.id.equals(pendingFolder.id));
-                            mNotificationHandler.showFolderShareNotification(
-                                device.deviceID,
-                                device.name,
-                                pendingFolder.id,
-                                pendingFolder.label,
-                                isNewFolder
-                            );
-                        }
-                    }
-                }
             }
         }
     }
@@ -1008,6 +974,7 @@ public class SyncthingService extends Service {
                             case "notification_type":
                             case "notify_crashes":
                             case "start_into_web_gui":
+                            case "suggest_new_folder_root":
                             case "use_legacy_hashing":
                                 LogV("importConfig: Ignoring deprecated pref \"" + prefKey + "\".");
                                 break;
@@ -1017,6 +984,7 @@ public class SyncthingService extends Service {
                             case Constants.PREF_EVENT_PROCESSOR_LAST_SYNC_ID:
                             case Constants.PREF_LAST_BINARY_VERSION:
                             case Constants.PREF_LOCAL_DEVICE_ID:
+                            case Constants.PREF_LAST_RUN_TIME:
                                 LogV("importConfig: Ignoring cache pref \"" + prefKey + "\".");
                                 break;
                             default:
@@ -1126,6 +1094,20 @@ public class SyncthingService extends Service {
             set.add(type.cast(o));
         }
         return set;
+    }
+
+    /**
+     * Permission check and request functions
+     */
+    @TargetApi(30)
+    private boolean haveAllFilesAccessPermission() {
+        return Environment.isExternalStorageManager();
+    }
+
+    private boolean haveStoragePermission() {
+        int permissionState = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        return permissionState == PackageManager.PERMISSION_GRANTED;
     }
 
     private void LogV(String logMessage) {

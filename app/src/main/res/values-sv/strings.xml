@@ -111,8 +111,6 @@
 
     <!-- Suggest File Manager App Dialog -->
     <string name="suggest_file_manager_app_dialog_title">Ingen kompatibel filhanterarapp hittades</string>
-    <string name="suggest_file_manager_app_dialog_text">Vi rekommenderar att du installerar filhanterarappen \"Simple File Manager\" med öppen källkod från F-Droid. Vill du öppna dess appbutiksida?</string>
-
     <!-- DeviceListFragment -->
 
     <!-- Devices tab title -->
@@ -135,6 +133,8 @@
 
     <!-- Indicates that the device connection is unknown -->
     <string name="device_state_unknown">Okänd</string>
+
+    <string name="device_last_seen_never">Aldrig</string>
 
     <!-- Title for current download rate -->
     <string name="download_title">Hämtar</string>
@@ -183,7 +183,6 @@
 
     <!-- Setting title -->
     <string name="directory">Katalog</string>
-
     <!-- Setting title and description -->
     <string name="folder_fileWatcher">Håll utkik efter ändringar</string>
     <string name="folder_fileWatcherDescription">Frågar operativsystemet att meddela om ändringar i filer. Om inaktiverad faller tillbaka på återkommande skanningar varje timme.</string>
@@ -241,6 +240,9 @@
 
     <!-- Setting title -->
     <string name="name">Namn</string>
+
+    <!-- Setting title -->
+    <string name="folders">Mappar</string>
 
     <!-- Setting title -->
     <string name="addresses">Adresser</string>

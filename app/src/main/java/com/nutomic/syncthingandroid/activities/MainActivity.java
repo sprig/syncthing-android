@@ -42,6 +42,7 @@ import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.annimon.stream.function.Consumer;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
@@ -476,6 +477,19 @@ public class MainActivity extends SyncthingActivity
         if (actionBar != null) {
             actionBar.setHomeButtonEnabled(true);
         }
+
+        BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation_view);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(MenuItem item) {
+                    switch (item.getItemId()) {
+                        case R.id.bottom_navigation_item_rescan_all:
+                            // rescanAll();
+                            break;
+                    }
+                    return true;
+                }
+        });
     }
 
     @Override
@@ -534,7 +548,7 @@ public class MainActivity extends SyncthingActivity
     }
 
     @Override
-     public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         return mDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
@@ -623,11 +637,11 @@ public class MainActivity extends SyncthingActivity
                 switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
                         restApi.setUsageReporting(true);
-                        restApi.saveConfigAndRestart();
+                        restApi.sendConfig();
                         break;
                     case DialogInterface.BUTTON_NEGATIVE:
                         restApi.setUsageReporting(false);
-                        restApi.saveConfigAndRestart();
+                        restApi.sendConfig();
                         break;
                     case DialogInterface.BUTTON_NEUTRAL:
                         final Intent intent = new Intent(MainActivity.this, WebViewActivity.class);

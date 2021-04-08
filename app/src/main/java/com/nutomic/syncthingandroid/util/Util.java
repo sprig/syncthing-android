@@ -30,8 +30,10 @@ import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Locale;
 
 import eu.chainfire.libsuperuser.Shell;
@@ -325,7 +327,7 @@ public class Util {
         if (activity.isFinishing())
             return;
 
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN && activity.isDestroyed())
+        if (activity.isDestroyed())
             return;
 
         dialog.dismiss();
@@ -459,5 +461,17 @@ public class Util {
         ZonedDateTime zonedDateTime = parsedDateTime.withZoneSameInstant(ZoneId.systemDefault());
         DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM).withLocale(Locale.getDefault());
         return formatter.format(zonedDateTime);
+    }
+
+    /**
+     * Converts local time to ZonedDateTime.
+     */
+    public static String getLocalZonedDateTime() {
+        // Example: "2021-02-11T22:11:29.356Z"
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return "2021-02-11T22:11:29.356Z";
+        }
+        return ZonedDateTime.ofLocal(LocalDateTime.now(), ZoneId.of("UTC"), ZoneOffset.UTC)
+                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 }
