@@ -112,7 +112,7 @@
             android:entries="@array/app_theme_names"
             android:entryValues="@array/app_theme_values"
             android:singleLineTitle="false"
-            android:defaultValue="1" />
+            android:defaultValue="-1" /> <!-- -1 is Follow system -->
 
         <!-- Expert mode -->
         <CheckBoxPreference
@@ -150,16 +150,6 @@
             android:summary="@string/use_root_summary"
             android:singleLineTitle="false"
             android:defaultValue="false" />
-
-        <!-- Folder root suggestion -->
-        <ListPreference
-            android:key="suggest_new_folder_root"
-            android:title="@string/suggest_new_folder_root_title"
-            android:entryValues="@array/suggest_new_folder_root_values"
-            android:entries="@array/suggest_new_folder_root_entries"
-            android:summary="@null"
-            android:singleLineTitle="false"
-            android:defaultValue="external_android_data" />
 
         <!-- Show "Syncthing Camera" icon in launcher -->
         <CheckBoxPreference

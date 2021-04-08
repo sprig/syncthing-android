@@ -8,6 +8,6 @@ public class Config {
     public List<Folder> folders;
     public Gui gui;
     public Options options;
-    public List<PendingDevice> pendingDevices;
+    public Defaults defaults;
     public List<RemoteIgnoredDevice> remoteIgnoredDevices;
 }

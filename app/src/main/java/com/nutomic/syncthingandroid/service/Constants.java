@@ -25,6 +25,15 @@ public class Constants {
     public static final String PREF_USE_WIFI_SSID_WHITELIST     = "use_wifi_whitelist";
     public static final String PREF_WIFI_SSID_WHITELIST         = "wifi_ssid_whitelist";
     public static final String PREF_POWER_SOURCE                = "power_source";
+
+    public final class PowerSource {
+        public static final String CHARGER_BATTERY              = "ac_and_battery_power";
+        public static final String CHARGER                      = "ac_power";
+        public static final String BATTERY                      = "battery_power";
+
+        private PowerSource() { }
+    }
+
     public static final String PREF_RESPECT_BATTERY_SAVING      = "respect_battery_saving";
     public static final String PREF_RESPECT_MASTER_SYNC         = "respect_master_sync";
     public static final String PREF_RUN_IN_FLIGHT_MODE          = "run_in_flight_mode";
@@ -36,11 +45,6 @@ public class Constants {
 
     // Preferences - Behaviour
     public static final String PREF_USE_ROOT                        = "use_root";
-
-    public static final String PREF_SUGGEST_NEW_FOLDER_ROOT         = "suggest_new_folder_root";
-    public static final String PREF_SUGGEST_NEW_FOLDER_ROOT_DATA    = "external_android_data";
-    public static final String PREF_SUGGEST_NEW_FOLDER_ROOT_MEDIA   = "external_android_media";
-
     public static final String PREF_LAUNCHER_SHOW_CAMERA_ICON       = "launcher_show_camera_icon";
 
     // Preferences - Troubleshooting
@@ -83,6 +87,10 @@ public class Constants {
         return objectPrefixAndId + "_" + PREF_RUN_ON_MOBILE_DATA;
     }
 
+    public static String DYN_PREF_OBJECT_SYNC_ON_POWER_SOURCE(String objectPrefixAndId) {
+        return objectPrefixAndId + "_" + PREF_POWER_SOURCE;
+    }
+
     /**
      * Cached information which is not available on SettingsActivity.
      */
@@ -90,6 +98,13 @@ public class Constants {
     public static final String PREF_KNOWN_WIFI_SSIDS            = "knownWifiSsids";
     public static final String PREF_LAST_BINARY_VERSION         = "lastBinaryVersion";
     public static final String PREF_LOCAL_DEVICE_ID             = "localDeviceID";
+    // from SystemClock.elapsedRealtime()
+    public static final String PREF_LAST_RUN_TIME               = "last_run_time";
+
+    /**
+     * Cached device stats.
+     */
+    public static final String PREF_CACHE_DEVICE_LASTSEEN_PREFIX        = "device_lastseen_";
 
     /**
      * {@link ConfigXml#addSyncthingCameraFolder}
@@ -120,6 +135,7 @@ public class Constants {
     /**
      * Available app themes
      */
+    public static final String APP_THEME_FOLLOW_SYSTEM          = "-1";
     public static final String APP_THEME_LIGHT                  = "1";
     public static final String APP_THEME_DARK                   = "2";
 
@@ -158,8 +174,8 @@ public class Constants {
      * If the user enabled hourly one-time shot sync, the following
      * parameters are effective.
      */
-    public static final int WAIT_FOR_NEXT_SYNC_DELAY_SECS       = isRunningOnEmulator() ? 180 : 3600;
-    public static final int TRIGGERED_SYNC_DURATION_SECS        = isRunningOnEmulator() ? 20 : 300;
+    public static final int WAIT_FOR_NEXT_SYNC_DELAY_SECS       = isRunningOnEmulator() ? 20 : 3600;        // "off" state duration
+    public static final int TRIGGERED_SYNC_DURATION_SECS        = isRunningOnEmulator() ? 10 : 300;         // "on" state duration
 
     /**
      * Directory where config is exported to and imported from.
@@ -171,7 +187,7 @@ public class Constants {
     /**
      * File in the config folder that contains configuration.
      */
-    static final String CONFIG_FILE = "config.xml";
+    public static final String CONFIG_FILE = "config.xml";
 
     public static File getConfigFile(Context context) {
         return new File(context.getFilesDir(), CONFIG_FILE);
@@ -189,18 +205,18 @@ public class Constants {
     /**
      * Name of the public key file in the data directory.
      */
-    static final String PUBLIC_KEY_FILE = "cert.pem";
+    public static final String PUBLIC_KEY_FILE = "cert.pem";
 
-    static File getPublicKeyFile(Context context) {
+    public static File getPublicKeyFile(Context context) {
         return new File(context.getFilesDir(), PUBLIC_KEY_FILE);
     }
 
     /**
      * Name of the private key file in the data directory.
      */
-    static final String PRIVATE_KEY_FILE = "key.pem";
+    public static final String PRIVATE_KEY_FILE = "key.pem";
 
-    static File getPrivateKeyFile(Context context) {
+    public static File getPrivateKeyFile(Context context) {
         return new File(context.getFilesDir(), PRIVATE_KEY_FILE);
     }
 
@@ -235,8 +251,10 @@ public class Constants {
     public static Boolean isRunningOnEmulator() {
         return !TextUtils.isEmpty(Build.MANUFACTURER) &&
                 !TextUtils.isEmpty(Build.MODEL) &&
-                Build.MANUFACTURER.equals("Google") &&
-                Build.MODEL.equals("Android SDK built for x86");
+                Build.MANUFACTURER.equals("Google") && (
+                        Build.MODEL.equals("Android SDK built for x86") ||
+                        Build.MODEL.equals("sdk_gphone_x86_arm")
+                );
     }
 
     /**
@@ -246,11 +264,6 @@ public class Constants {
      * to syncthing core v0.14.53+.
      */
     public static Boolean osSupportsTLS12() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            // Pre-Lollipop devices don't support TLS 1.2
-            return false;
-        }
-
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.N) {
             /**
              * SSLProtocolException: SSL handshake failed on Android N/7.0,

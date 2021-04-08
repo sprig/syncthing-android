@@ -82,6 +82,10 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
         // If that's the case we've to start at zero because syncthing was restarted.
         mRestApi.getEvents(0, 1, new RestApi.OnReceiveEventListener() {
             @Override
+            public void onError() {
+            }
+
+            @Override
             public void onEvent(Event event, JsonElement json) {
             }
 
@@ -122,28 +126,19 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
                 break;
             case "DevicePaused":
                 mRestApi.updateRemoteDevicePaused(
-                        (String) event.data.get("id"),          // deviceId
+                        (String) event.data.get("device"),          // deviceId
                         true
                 );
                 break;
             case "DeviceRejected":
-                /**
-                 * This is obsolete since v0.14.51, https://github.com/syncthing/syncthing/pull/5084
-                 * Unknown devices are now stored to "config.xml" and persisted until the user decided
-                 * to accept or ignore the device connection request. We don't need to catch the event
-                 * as a "ConfigSaved" event is fired which will be forwarded to:
-                 * {@link RestApi#reloadConfig} => {@link RestApi#onReloadConfigComplete}
-                 */
-                /*
                 onDeviceRejected(
                     (String) event.data.get("device"),          // deviceId
                     (String) event.data.get("name")             // deviceName
                 );
-                */
                 break;
             case "DeviceResumed":
                 mRestApi.updateRemoteDevicePaused(
-                        (String) event.data.get("id"),          // deviceId
+                        (String) event.data.get("device"),          // deviceId
                         false
                 );
                 break;
@@ -160,20 +155,11 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
                 );
                 break;
             case "FolderRejected":
-                /**
-                 * This is obsolete since v0.14.51, https://github.com/syncthing/syncthing/pull/5084
-                 * Unknown folders are now stored to "config.xml" and persisted until the user decided
-                 * to accept or ignore the folder share request. We don't need to catch the event
-                 * as a "ConfigSaved" event is fired which will be forwarded to:
-                 * {@link RestApi#reloadConfig} => {@link RestApi#onReloadConfigComplete}
-                 */
-                /*
                 onFolderRejected(
                     (String) event.data.get("device"),          // deviceId
                     (String) event.data.get("folder"),          // folderId
                     (String) event.data.get("folderLabel")      // folderLabel
                 );
-                */
                 break;
             case "FolderResumed":
                 onFolderResumed(
@@ -262,6 +248,17 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
         }
     }
 
+    @Override
+    public void onError() {
+        synchronized (mMainThreadHandler) {
+            if (!mShutdown) {
+                Log.d(TAG, "Event sink aborted, will retry in " + Long.toString(EVENT_UPDATE_INTERVAL) + " ms");
+                mMainThreadHandler.removeCallbacks(this);
+                mMainThreadHandler.postDelayed(this, EVENT_UPDATE_INTERVAL);
+            }
+        }
+    }
+
     public void start() {
         Log.d(TAG, "Starting event processor.");
 
@@ -280,6 +277,42 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
             mShutdown = true;
             mMainThreadHandler.removeCallbacks(this);
         }
+    }
+
+    private void onDeviceRejected(String deviceId, String deviceName) {
+        if (deviceId == null) {
+            return;
+        }
+        Log.d(TAG, "Unknown device '" + deviceName + "' (" + deviceId + ") wants to connect");
+        // Show device approve/ignore notification.
+        mNotificationHandler.showDeviceConnectNotification(deviceId, deviceName);
+    }
+
+    private void onFolderRejected(String deviceId, String folderId,
+                                    String folderLabel) {
+        if (deviceId == null || folderId == null) {
+            return;
+        }
+        Log.d(TAG, "Device '" + deviceId + "' wants to share folder '" +
+            folderLabel + "' (" + folderId + ")");
+        // Find the deviceName corresponding to the deviceId.
+        String deviceName = null;
+        for (Device d : mRestApi.getDevices(false)) {
+            if (d.deviceID.equals(deviceId)) {
+                deviceName = d.getDisplayName();
+                break;
+            }
+        }
+        Boolean isNewFolder = Stream.of(mRestApi.getFolders())
+                .noneMatch(f -> f.id.equals(folderId));
+        // Show folder approve/ignore notification.
+        mNotificationHandler.showFolderShareNotification(
+            deviceId,
+            deviceName,
+            folderId,
+            folderLabel,
+            isNewFolder
+        );
     }
 
     private void onFolderCompletion(final Map<String, Object> eventData) {

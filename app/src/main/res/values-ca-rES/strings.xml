@@ -60,10 +60,6 @@ Ens podeu informar dels problemes que trobeu a través de Github.</string>
 
 
 
-    <!-- MainActivity -->
-
-
-
     <!-- Main menu button -->
     <string name="open_main_menu">Obre el Menú Principal</string>
     <string name="close_main_menu">Tanca el Menú Principal</string>
@@ -129,8 +125,6 @@ Ens podeu informar dels problemes que trobeu a través de Github.</string>
 
     <!-- Suggest File Manager App Dialog -->
     <string name="suggest_file_manager_app_dialog_title">No s\'ha trobat cap gestor de fitxers compatible</string>
-    <string name="suggest_file_manager_app_dialog_text">Us recomanem instal·lar el gestor de fitxers de codi obert \"Simple File Manager\" de F-Droid. Voleu obrir la pàgina de la botiga d\'aplicacions?</string>
-
     <!-- DeviceListFragment -->
 
     <!-- Devices tab title -->
@@ -198,7 +192,6 @@ Ens podeu informar dels problemes que trobeu a través de Github.</string>
 
     <!-- Setting title -->
     <string name="directory">Directori</string>
-
     <!-- Setting title and description -->
     <string name="folder_fileWatcher">Vigila els canvis</string>
     <string name="folder_fileWatcherDescription">Demana al sistema que notifiqui dels canvis als fitxers. Si es desactiva es faran comprovacions cada hora.</string>
@@ -417,13 +410,6 @@ Ens podeu informar dels problemes que trobeu a través de Github.</string>
     <string name="use_root_title">Executa el Syncthing com a Superusuari</string>
 
     <string name="use_root_summary">Aquesta característica és inestable i podria causar problemes amb el Syncthing i amb el vostre dispositiu. Si us trobeu amb problemes, potser haureu de reinstal·lar el Syncthing.</string>
-
-    <string name="suggest_new_folder_root_title">Seleccioneu la nova carpeta arrel</string>
-
-    <string-array name="suggest_new_folder_root_entries">
-        <item>[emmagatzematge_extern]/Android/data</item>
-        <item>[emmagatzematge_extern]/Android/media</item>
-    </string-array>
 
     <string name="expert_mode_title">Mode expert</string>
 

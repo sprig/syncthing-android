@@ -68,16 +68,10 @@ public class WifiSsidPreference extends MultiSelectListPreference {
     protected void showDialog(Bundle state) {
         SharedPreferences sharedPreferences = getSharedPreferences();
         Set<String> knownSsids;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            knownSsids = sharedPreferences.getStringSet(Constants.PREF_KNOWN_WIFI_SSIDS, new HashSet<>());
-            String currentWifiSsid = getCurrentWifiSsid();
-            if (!TextUtils.isEmpty(currentWifiSsid)) {
-                if (!knownSsids.contains(currentWifiSsid)) {
-                    knownSsids.add(currentWifiSsid);
-                }
-            }
-        } else {
-            knownSsids = getConfiguredWifiSsidsAPI16to28();
+        knownSsids = sharedPreferences.getStringSet(Constants.PREF_KNOWN_WIFI_SSIDS, new HashSet<>());
+        String currentWifiSsid = getCurrentWifiSsid();
+        if (!TextUtils.isEmpty(currentWifiSsid)) {
+            knownSsids.add(currentWifiSsid);
         }
 
         if (!knownSsids.isEmpty()) {
@@ -160,52 +154,6 @@ public class WifiSsidPreference extends MultiSelectListPreference {
             result[i] = ((String) result[i]).replaceFirst("^\"", "").replaceFirst("\"$", "");
         }
         return result;
-    }
-
-    /**
-     * Load the configured WiFi networks, sort them by SSID.
-     *
-     * @return a sorted array of WiFi SSIDs, or an empty set, if data cannot be retrieved.
-     */
-    private Set<String> getConfiguredWifiSsidsAPI16to28() {
-        Set<String> retSsids = new HashSet<>();
-
-        WifiManager wifiManager = (WifiManager)
-                getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (wifiManager == null) {
-            // WiFi is turned off or device doesn't have WiFi.
-            Log.w(TAG, "getConfiguredWifiSsidsAPI16to28: WiFi is turned off or device doesn't have WiFi.");
-            return retSsids;
-        }
-
-        List<WifiConfiguration> configuredNetworks = null;
-        try {
-            configuredNetworks = wifiManager.getConfiguredNetworks();
-        } catch (SecurityException e) {
-            // See changes in Android Q, https://developer.android.com/reference/android/net/wifi/WifiManager.html#getConfiguredNetworks()
-            Log.e(TAG, "getConfiguredWifiSsidsAPI16to28:", e);
-        }
-        if (configuredNetworks == null) {
-            Log.i(TAG, "getConfiguredWifiSsidsAPI16to28: wifiManager returned configuredNetworks == null");
-            return retSsids;
-        }
-        Log.v(TAG, "getConfiguredWifiSsidsAPI16to28 != null");
-
-        WifiConfiguration[] result = configuredNetworks.toArray(new WifiConfiguration[configuredNetworks.size()]);
-        Arrays.sort(result, (lhs, rhs) -> {
-            // See #620: There may be null-SSIDs
-            String l = lhs.SSID != null ? lhs.SSID : "";
-            String r = rhs.SSID != null ? rhs.SSID : "";
-            return l.compareToIgnoreCase(r);
-        });
-
-        for (int i = 0; i < result.length; i++) {
-            // Exclude null SSIDs.
-            if (result[i].SSID != null) {
-                retSsids.add(result[i].SSID);
-            }
-        }
-        return retSsids;
     }
 
     private boolean haveLocationPermission() {

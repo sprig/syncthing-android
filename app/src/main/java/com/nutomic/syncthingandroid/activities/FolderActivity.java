@@ -51,6 +51,7 @@ import com.nutomic.syncthingandroid.util.Util;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -102,6 +103,7 @@ public class FolderActivity extends SyncthingActivity {
     private EditText mLabelView;
     private EditText mIdView;
     private TextView mPathView;
+    private View mSelectAdvancedDirectory;
     private TextView mAccessExplanationView;
     private TextView mFolderTypeView;
     private TextView mFolderTypeDescriptionView;
@@ -123,6 +125,8 @@ public class FolderActivity extends SyncthingActivity {
 
     @Inject
     SharedPreferences mPreferences;
+
+    private boolean mPrefExpertMode = false;
 
     private boolean mIsCreateMode;
     private boolean mFolderNeedsToUpdate = false;
@@ -204,9 +208,12 @@ public class FolderActivity extends SyncthingActivity {
         mIsCreateMode = getIntent().getBooleanExtra(EXTRA_IS_CREATE, false);
         setTitle(mIsCreateMode ? R.string.create_folder : R.string.edit_folder);
 
+        mPrefExpertMode = mPreferences.getBoolean(Constants.PREF_EXPERT_MODE, false);
+
         mLabelView = findViewById(R.id.label);
         mIdView = findViewById(R.id.id);
         mPathView = findViewById(R.id.directoryTextView);
+        mSelectAdvancedDirectory = findViewById(R.id.selectAdvancedDirectory);
         mAccessExplanationView = findViewById(R.id.accessExplanationView);
         mFolderTypeView = findViewById(R.id.folderType);
         mFolderTypeDescriptionView = findViewById(R.id.folderTypeDescription);
@@ -225,6 +232,12 @@ public class FolderActivity extends SyncthingActivity {
         mDevicesContainer = findViewById(R.id.devicesContainer);
         mEditIgnoreListTitle = findViewById(R.id.edit_ignore_list_title);
         mEditIgnoreListContent = findViewById(R.id.edit_ignore_list_content);
+
+        // Android 11 disallows selecting the "Downloads" and the emulated storage root directory.
+        mSelectAdvancedDirectory.setVisibility(
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ? View.VISIBLE : View.GONE
+        );
+        mSelectAdvancedDirectory.setOnClickListener(view -> onSelectAdvancedDirectoryClick());
 
         mPathView.setOnClickListener(view -> onPathViewClick());
         mCustomSyncConditionsDialog.setOnClickListener(view -> onCustomSyncConditionsDialogClick());
@@ -287,14 +300,13 @@ public class FolderActivity extends SyncthingActivity {
             mIdView.setEnabled(false);
             mPathView.setFocusable(false);
             mPathView.setEnabled(false);
+            mSelectAdvancedDirectory.setVisibility(View.GONE);
         }
         checkWriteAndUpdateUI();
         updateViewsAndSetListeners();
 
         // Show expert options conditionally.
-        Boolean prefExpertMode = mPreferences.getBoolean(Constants.PREF_EXPERT_MODE, false);
-        mPullOrderContainer.setVisibility(prefExpertMode ? View.VISIBLE : View.GONE);
-        mIgnoreDeleteContainer.setVisibility(prefExpertMode ? View.VISIBLE : View.GONE);
+        mIgnoreDeleteContainer.setVisibility(mPrefExpertMode ? View.VISIBLE : View.GONE);
 
         // Open keyboard on label view in edit mode.
         mLabelView.requestFocus();
@@ -313,21 +325,8 @@ public class FolderActivity extends SyncthingActivity {
      */
     @SuppressLint("InlinedAPI")
     private void onPathViewClick() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            // API < 21
-            startActivityForResult(FolderPickerActivity.createIntent(this, mFolder.path, null),
-                FolderPickerActivity.DIRECTORY_REQUEST_CODE);
-            return;
-        }
-        String prefSuggestNewFolderRoot = mPreferences.getString(Constants.PREF_SUGGEST_NEW_FOLDER_ROOT, Constants.PREF_SUGGEST_NEW_FOLDER_ROOT_DATA);
-
         // This has to be android.net.Uri as it implements a Parcelable.
-        android.net.Uri externalFilesDirUri = FileUtils.getExternalFilesDirUri(
-                FolderActivity.this,
-                prefSuggestNewFolderRoot.equals(Constants.PREF_SUGGEST_NEW_FOLDER_ROOT_DATA) ?
-                        ExternalStorageDirType.DATA :
-                        ExternalStorageDirType.MEDIA
-        );
+        android.net.Uri externalFilesDirUri = FileUtils.getExternalFilesDirUri(FolderActivity.this, ExternalStorageDirType.MEDIA);
 
         // Display storage access framework directory picker UI.
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -367,6 +366,14 @@ public class FolderActivity extends SyncthingActivity {
             ),
             0
         );
+    }
+
+    /**
+     * Invoked after user clicked on the select advanced directory button.
+     */
+    private void onSelectAdvancedDirectoryClick() {
+        startActivityForResult(FolderPickerActivity.createIntent(this, mFolder.path, null),
+            FolderPickerActivity.DIRECTORY_REQUEST_CODE);
     }
 
     private void showFolderTypeDialog() {
@@ -607,7 +614,8 @@ public class FolderActivity extends SyncthingActivity {
             // Postpone sending the config changes using syncthing REST API.
             mFolderNeedsToUpdate = true;
         } else if (resultCode == Activity.RESULT_OK && requestCode == FolderPickerActivity.DIRECTORY_REQUEST_CODE) {
-            mFolder.path = data.getStringExtra(FolderPickerActivity.EXTRA_RESULT_DIRECTORY);
+            mFolder.path = FileUtils.cutTrailingSlash(data.getStringExtra(FolderPickerActivity.EXTRA_RESULT_DIRECTORY));
+            Log.v(TAG, "onActivityResult/DIRECTORY_REQUEST_CODE: Got directory path '" + mFolder.path + "'");
             checkWriteAndUpdateUI();
             // Postpone sending the config changes using syncthing REST API.
             mFolderNeedsToUpdate = true;
@@ -704,6 +712,9 @@ public class FolderActivity extends SyncthingActivity {
         mFolder.versioning = new Folder.Versioning();
         mFolder.versioning.type = "trashcan";
         mFolder.versioning.params.put("cleanoutDays", Integer.toString(14));
+        mFolder.versioning.cleanupIntervalS = 0;
+        mFolder.versioning.fsPath = "";
+        mFolder.versioning.fsType = "basic";
     }
 
     private void addEmptyDeviceListView() {
@@ -802,9 +813,6 @@ public class FolderActivity extends SyncthingActivity {
          * readonly access on the path and the user tries to configure a
          * sendOnly folder. To fix this, we'll precreate the marker using java code.
          */
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return;
-        }
         if (uriFolderRoot == null) {
             Log.w(TAG, "preCreateFolderMarker: uriFolderRoot == null");
             return;
@@ -850,7 +858,7 @@ public class FolderActivity extends SyncthingActivity {
         OutputStream outputStream = null;
         try {
             outputStream = getContentResolver().openOutputStream(dfDoNotDeleteFile.getUri());
-            outputStream.write(DO_NOT_DELETE_FILE_NAME.getBytes("ISO-8859-1"));
+            outputStream.write(DO_NOT_DELETE_FILE_NAME.getBytes(StandardCharsets.ISO_8859_1));
             outputStream.flush();
         } catch (IOException e) {
             Log.e(TAG, "preCreateFolderMarker: Failed to create file '" + strDoNotDeleteFile + "' #2", e);
@@ -920,6 +928,10 @@ public class FolderActivity extends SyncthingActivity {
                         getString(R.string.folder_type_receiveonly_description));
                 break;
         }
+
+        // Disable "file pull order" option for sendOnly folders. See issue syncthing/syncthing#6807
+        mPullOrderContainer.setVisibility(mPrefExpertMode &&
+                !mFolder.type.equals(Constants.FOLDER_TYPE_SEND_ONLY) ? View.VISIBLE : View.GONE);
     }
 
     private void setFolderTypeDescription(String type, String description) {

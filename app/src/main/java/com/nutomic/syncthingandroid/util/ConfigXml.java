@@ -13,8 +13,6 @@ import com.nutomic.syncthingandroid.model.FolderIgnoreList;
 import com.nutomic.syncthingandroid.model.Gui;
 import com.nutomic.syncthingandroid.model.IgnoredFolder;
 import com.nutomic.syncthingandroid.model.Options;
-import com.nutomic.syncthingandroid.model.PendingDevice;
-import com.nutomic.syncthingandroid.model.PendingFolder;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.service.AppPrefs;
 import com.nutomic.syncthingandroid.service.Constants;
@@ -31,6 +29,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -84,24 +83,6 @@ public class ConfigXml {
      * Compares folders by labels, uses the folder ID as fallback if the label is empty
      */
     private final static Comparator<Folder> FOLDERS_COMPARATOR = (lhs, rhs) -> {
-        String lhsLabel = lhs.label != null && !lhs.label.isEmpty() ? lhs.label : lhs.id;
-        String rhsLabel = rhs.label != null && !rhs.label.isEmpty() ? rhs.label : rhs.id;
-        return lhsLabel.compareTo(rhsLabel);
-    };
-
-    /**
-     * Compares pending devices by labels, uses the device ID as fallback if the label is empty
-     */
-    private final static Comparator<PendingDevice> PENDING_DEVICES_COMPARATOR = (lhs, rhs) -> {
-        String lhsLabel = lhs.name != null && !lhs.name.isEmpty() ? lhs.name : lhs.deviceID;
-        String rhsLabel = rhs.name != null && !rhs.name.isEmpty() ? rhs.name : rhs.deviceID;
-        return lhsLabel.compareTo(rhsLabel);
-    };
-
-    /**
-     * Compares pending folders by labels, uses the folder ID as fallback if the label is empty
-     */
-    private final static Comparator<PendingFolder> PENDING_FOLDERS_COMPARATOR = (lhs, rhs) -> {
         String lhsLabel = lhs.label != null && !lhs.label.isEmpty() ? lhs.label : lhs.id;
         String rhsLabel = rhs.label != null && !rhs.label.isEmpty() ? rhs.label : rhs.id;
         return lhsLabel.compareTo(rhsLabel);
@@ -200,15 +181,15 @@ public class ConfigXml {
         }
         try {
             FileInputStream inputStream = new FileInputStream(mConfigFile);
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
             InputSource inputSource = new InputSource(inputStreamReader);
             inputSource.setEncoding("UTF-8");
             DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbfactory.newDocumentBuilder();
-            LogV("Parsing config file '" + mConfigFile + "'");
+            // LogV("Parsing config file '" + mConfigFile + "'");
             mConfig = db.parse(inputSource);
             inputStream.close();
-            LogV("Successfully parsed config file");
+            // LogV("Successfully parsed config file");
         } catch (SAXException | ParserConfigurationException | IOException e) {
             Log.w(TAG, "Failed to parse config file '" + mConfigFile + "'", e);
             throw new OpenConfigException();
@@ -379,7 +360,6 @@ public class ConfigXml {
         /* Read existing config version */
         int iConfigVersion = getAttributeOrDefault(mConfig.getDocumentElement(), "version", 0);
         int iOldConfigVersion = iConfigVersion;
-        LogV("Found existing config version " + Integer.toString(iConfigVersion));
 
         /* Check if we have to do manual migration from version X to Y */
         if (iConfigVersion == 27) {
@@ -405,13 +385,13 @@ public class ConfigXml {
             iConfigVersion = 28;
         }
 
-        if (iConfigVersion != iOldConfigVersion) {
-            mConfig.getDocumentElement().setAttribute("version", Integer.toString(iConfigVersion));
-            Log.i(TAG, "New config version is " + Integer.toString(iConfigVersion));
-            return true;
-        } else {
+        if (iConfigVersion == iOldConfigVersion) {
             return false;
         }
+        mConfig.getDocumentElement().setAttribute("version", Integer.toString(iConfigVersion));
+        Log.i(TAG, "Old config version was " + Integer.toString(iOldConfigVersion) +
+                ", new config version is " + Integer.toString(iConfigVersion));
+        return true;
     }
 
     private Boolean getAttributeOrDefault(final Element element, String attribute, Boolean defaultValue) {
@@ -457,9 +437,15 @@ public class ConfigXml {
     public List<Folder> getFolders() {
         String localDeviceID = getLocalDeviceIDfromPref();
         List<Folder> folders = new ArrayList<>();
-        NodeList nodeFolders = mConfig.getDocumentElement().getElementsByTagName("folder");
-        for (int i = 0; i < nodeFolders.getLength(); i++) {
-            Element r = (Element) nodeFolders.item(i);
+
+        // Prevent enumerating "<folder>" tags below "<default>" nodes by enumerating child nodes manually.
+        NodeList childNodes = mConfig.getDocumentElement().getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node node = childNodes.item(i);
+            if (!node.getNodeName().equals("folder")) {
+                continue;
+            }
+            Element r = (Element) node;
             Folder folder = new Folder();
             folder.id = getAttributeOrDefault(r, "id", "");
             folder.label = getAttributeOrDefault(r, "label", folder.label);
@@ -481,6 +467,9 @@ public class ConfigXml {
             folder.blockPullOrder = getContentOrDefault(r.getElementsByTagName("blockPullOrder").item(0), folder.blockPullOrder);
             folder.disableFsync = getContentOrDefault(r.getElementsByTagName("disableFsync").item(0), folder.disableFsync);
             folder.maxConcurrentWrites = getContentOrDefault(r.getElementsByTagName("maxConcurrentWrites").item(0), folder.maxConcurrentWrites);
+            folder.maxConflicts = getContentOrDefault(r.getElementsByTagName("maxConflicts").item(0), folder.maxConflicts);
+            folder.copyRangeMethod = getContentOrDefault(r.getElementsByTagName("copyRangeMethod").item(0), folder.copyRangeMethod);
+            folder.caseSensitiveFS = getContentOrDefault(r.getElementsByTagName("caseSensitiveFS").item(0), folder.caseSensitiveFS);
 
             // Devices
             /*
@@ -517,12 +506,18 @@ public class ConfigXml {
             <versioning></versioning>
             <versioning type="trashcan">
                 <param key="cleanoutDays" val="90"></param>
+                <cleanupIntervalS>0</cleanupIntervalS>
+                <fsPath></fsPath>
+                <fsType>basic</fsType>
             </versioning>
             */
             folder.versioning = new Folder.Versioning();
             Element elementVersioning = (Element) r.getElementsByTagName("versioning").item(0);
             if (elementVersioning != null) {
                 folder.versioning.type = getAttributeOrDefault(elementVersioning, "type", "");
+                folder.versioning.cleanupIntervalS = getContentOrDefault(elementVersioning.getElementsByTagName("cleanupIntervalS").item(0), 0);
+                folder.versioning.fsPath = getContentOrDefault(elementVersioning.getElementsByTagName("fsPath").item(0), "");
+                folder.versioning.fsType = getContentOrDefault(elementVersioning.getElementsByTagName("fsType").item(0), "basic");
                 NodeList nodeVersioningParam = elementVersioning.getElementsByTagName("param");
                 for (int j = 0; j < nodeVersioningParam.getLength(); j++) {
                     Element elementVersioningParam = (Element) nodeVersioningParam.item(j);
@@ -583,6 +578,9 @@ public class ConfigXml {
                 setConfigElement(r, "blockPullOrder", folder.blockPullOrder);
                 setConfigElement(r, "disableFsync", Boolean.toString(folder.disableFsync));
                 setConfigElement(r, "maxConcurrentWrites", Integer.toString(folder.maxConcurrentWrites));
+                setConfigElement(r, "maxConflicts", Integer.toString(folder.maxConflicts));
+                setConfigElement(r, "copyRangeMethod", folder.copyRangeMethod);
+                setConfigElement(r, "caseSensitiveFS", Boolean.toString(folder.caseSensitiveFS));
 
                 // Update devices that share this folder.
                 // Pass 1: Remove all devices below that folder in XML except the local device.
@@ -604,9 +602,6 @@ public class ConfigXml {
                     Element elementDevice = (Element) nodeDevice;
                     elementDevice.setAttribute("id", device.deviceID);
                     elementDevice.setAttribute("introducedBy", device.introducedBy);
-
-                    // Remove corresponding "pendingFolder" node if any exists for the current device.
-                    removePendingFolder(device.deviceID, folder.id);
                 }
 
                 // minDiskFree
@@ -628,13 +623,6 @@ public class ConfigXml {
 
                 // Versioning
                 // Pass 1: Remove all versioning nodes from XML (usually one)
-                /*
-                NodeList nlVersioning = r.getElementsByTagName("versioning");
-                for (int j = nlVersioning.getLength() - 1; j >= 0; j--) {
-                    Log.v(TAG, "updateFolder: nodeVersioning: Removing versioning node");
-                    removeChildElementFromTextNode(r, (Element) nlVersioning.item(j));
-                }
-                */
                 Element elementVersioning = (Element) r.getElementsByTagName("versioning").item(0);
                 if (elementVersioning != null) {
                     Log.d(TAG, "updateFolder: nodeVersioning: Removing versioning node");
@@ -647,6 +635,9 @@ public class ConfigXml {
                 elementVersioning = (Element) nodeVersioning;
                 if (!TextUtils.isEmpty(folder.versioning.type)) {
                     elementVersioning.setAttribute("type", folder.versioning.type);
+                    setConfigElement(elementVersioning, "cleanupIntervalS", Integer.toString(folder.versioning.cleanupIntervalS));
+                    setConfigElement(elementVersioning, "fsPath", folder.versioning.fsPath);
+                    setConfigElement(elementVersioning, "fsType", folder.versioning.fsType);
                     for (Map.Entry<String, String> param : folder.versioning.params.entrySet()) {
                         Log.d(TAG, "updateFolder: nodeVersioning: Adding param key=" + param.getKey() + ", val=" + param.getValue());
                         Node nodeParam = mConfig.createElement("param");
@@ -698,10 +689,10 @@ public class ConfigXml {
             file = new File(folder.path, Constants.FILENAME_STIGNORE);
             if (file.exists()) {
                 fileInputStream = new FileInputStream(file);
-                InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream, "UTF-8");
+                InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream, StandardCharsets.UTF_8);
                 byte[] data = new byte[(int) file.length()];
                 fileInputStream.read(data);
-                folderIgnoreList.ignore = new String(data, "UTF-8").split("\n");
+                folderIgnoreList.ignore = new String(data, StandardCharsets.UTF_8).split("\n");
             } else {
                 // File not found.
                 Log.w(TAG, "getFolderIgnoreList: File missing " + file);
@@ -737,7 +728,7 @@ public class ConfigXml {
             }
             fileOutputStream = new FileOutputStream(file);
             // LogV("postFolderIgnoreList: Writing " + Constants.FILENAME_STIGNORE + " content=" + TextUtils.join("\n", ignore));
-            fileOutputStream.write(TextUtils.join("\n", ignore).getBytes("UTF-8"));
+            fileOutputStream.write(TextUtils.join("\n", ignore).getBytes(StandardCharsets.UTF_8));
             fileOutputStream.flush();
         } catch (IOException e) {
             /**
@@ -760,72 +751,58 @@ public class ConfigXml {
         String localDeviceID = getLocalDeviceIDfromPref();
         List<Device> devices = new ArrayList<>();
 
-        // Prevent enumerating "<device>" tags below "<folder>" nodes by enumerating child nodes manually.
+        // Prevent enumerating "<device>" tags below "<defaults>", "<folder>" nodes by enumerating child nodes manually.
         NodeList childNodes = mConfig.getDocumentElement().getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node node = childNodes.item(i);
-            if (node.getNodeName().equals("device")) {
-                Element r = (Element) node;
-                Device device = new Device();
-                device.compression = getAttributeOrDefault(r, "compression", device.compression);
-                device.deviceID = getAttributeOrDefault(r, "id", "");
-                device.introducedBy = getAttributeOrDefault(r, "introducedBy", device.introducedBy);
-                device.introducer =  getAttributeOrDefault(r, "introducer", device.introducer);
-                device.name = getAttributeOrDefault(r, "name", device.name);
-                device.paused = getContentOrDefault(r.getElementsByTagName("paused").item(0), device.paused);
+            if (!node.getNodeName().equals("device")) {
+                continue;
+            }
+            Element r = (Element) node;
+            Device device = new Device();
+            device.compression = getAttributeOrDefault(r, "compression", device.compression);
+            device.deviceID = getAttributeOrDefault(r, "id", "");
+            device.introducedBy = getAttributeOrDefault(r, "introducedBy", device.introducedBy);
+            device.introducer =  getAttributeOrDefault(r, "introducer", device.introducer);
+            device.name = getAttributeOrDefault(r, "name", device.name);
+            device.paused = getContentOrDefault(r.getElementsByTagName("paused").item(0), device.paused);
 
-                // Addresses
-                /*
-                <device ...>
-                    <address>dynamic</address>
-                    <address>tcp4://192.168.1.67:2222</address>
-                </device>
-                */
-                device.addresses = new ArrayList<>();
-                NodeList nodeAddresses = r.getElementsByTagName("address");
-                for (int j = 0; j < nodeAddresses.getLength(); j++) {
-                    String address = getContentOrDefault(nodeAddresses.item(j), "");
-                    device.addresses.add(address);
-                    // LogV("getDevices: address=" + address);
-                }
+            // Addresses
+            /*
+            <device ...>
+                <address>dynamic</address>
+                <address>tcp4://192.168.1.67:2222</address>
+            </device>
+            */
+            device.addresses = new ArrayList<>();
+            NodeList nodeAddresses = r.getElementsByTagName("address");
+            for (int j = 0; j < nodeAddresses.getLength(); j++) {
+                String address = getContentOrDefault(nodeAddresses.item(j), "");
+                device.addresses.add(address);
+                // LogV("getDevices: address=" + address);
+            }
 
-                // ignoredFolders
-                device.ignoredFolders = new ArrayList<>();
-                NodeList nodeIgnoredFolders = r.getElementsByTagName("ignoredFolder");
-                for (int j = 0; j < nodeIgnoredFolders.getLength(); j++) {
-                    Element elementIgnoredFolder = (Element) nodeIgnoredFolders.item(j);
-                    IgnoredFolder ignoredFolder = new IgnoredFolder();
-                    ignoredFolder.id = getAttributeOrDefault(elementIgnoredFolder, "id", ignoredFolder.id);
-                    ignoredFolder.label = getAttributeOrDefault(elementIgnoredFolder, "label", ignoredFolder.label);
-                    ignoredFolder.time = getAttributeOrDefault(elementIgnoredFolder, "time", ignoredFolder.time);
+            // ignoredFolders
+            device.ignoredFolders = new ArrayList<>();
+            NodeList nodeIgnoredFolders = r.getElementsByTagName("ignoredFolder");
+            for (int j = 0; j < nodeIgnoredFolders.getLength(); j++) {
+                Element elementIgnoredFolder = (Element) nodeIgnoredFolders.item(j);
+                IgnoredFolder ignoredFolder = new IgnoredFolder();
+                ignoredFolder.id = getAttributeOrDefault(elementIgnoredFolder, "id", ignoredFolder.id);
+                ignoredFolder.label = getAttributeOrDefault(elementIgnoredFolder, "label", ignoredFolder.label);
+                ignoredFolder.time = getAttributeOrDefault(elementIgnoredFolder, "time", ignoredFolder.time);
 
-                    // LogV("getDevices: ignoredFolder=[id=" + ignoredFolder.id + ", label=" + ignoredFolder.label + ", time=" + ignoredFolder.time + "]");
-                    device.ignoredFolders.add(ignoredFolder);
-                }
+                // LogV("getDevices: ignoredFolder=[id=" + ignoredFolder.id + ", label=" + ignoredFolder.label + ", time=" + ignoredFolder.time + "]");
+                device.ignoredFolders.add(ignoredFolder);
+            }
 
-                // pendingFolders
-                device.pendingFolders = new ArrayList<>();
-                NodeList nodePendingFolders = r.getElementsByTagName("pendingFolder");
-                for (int j = 0; j < nodePendingFolders.getLength(); j++) {
-                    Element elementPendingFolder = (Element) nodePendingFolders.item(j);
-                    PendingFolder pendingFolder = new PendingFolder();
-                    pendingFolder.id = getAttributeOrDefault(elementPendingFolder, "id", pendingFolder.id);
-                    pendingFolder.label = getAttributeOrDefault(elementPendingFolder, "label", pendingFolder.label);
-                    pendingFolder.time = getAttributeOrDefault(elementPendingFolder, "time", pendingFolder.time);
+            // For testing purposes only.
+            // LogV("getDevices: device.name=" + device.name + "/" +"device.id=" + device.deviceID + "/" + "device.paused=" + device.paused);
 
-                    // LogV("getDevices: pendingFolder=[id=" + pendingFolder.id + ", label=" + pendingFolder.label + ", time=" + pendingFolder.time + "]");
-                    device.pendingFolders.add(pendingFolder);
-                }
-                Collections.sort(device.pendingFolders, PENDING_FOLDERS_COMPARATOR);
-
-                // For testing purposes only.
-                // LogV("getDevices: device.name=" + device.name + "/" +"device.id=" + device.deviceID + "/" + "device.paused=" + device.paused);
-
-                // Exclude self if requested.
-                Boolean isLocalDevice = !TextUtils.isEmpty(device.deviceID) && device.deviceID.equals(localDeviceID);
-                if (includeLocal || !isLocalDevice) {
-                    devices.add(device);
-                }
+            // Exclude self if requested.
+            Boolean isLocalDevice = !TextUtils.isEmpty(device.deviceID) && device.deviceID.equals(localDeviceID);
+            if (includeLocal || !isLocalDevice) {
+                devices.add(device);
             }
         }
         Collections.sort(devices, DEVICES_COMPARATOR);
@@ -913,21 +890,6 @@ public class ConfigXml {
 
                     break;
                 }
-            }
-        }
-
-        /**
-         * Remove corresponding "pendingDevice" node if any exists.
-         * Required when adding a device, but does not hurt to do during update.
-         */
-        List<PendingDevice> pendingDevices = new ArrayList<>();
-        NodeList nodePendingDevice = mConfig.getDocumentElement().getElementsByTagName("pendingDevice");
-        for (int i = 0; i < nodePendingDevice.getLength(); i++) {
-            Element r = (Element) nodePendingDevice.item(i);
-            if (getAttributeOrDefault(r, "id", "").equals(device.deviceID)) {
-                Log.d(TAG, "addDevice: Removing pendingDevice [" + device.deviceID + "]");
-                removeChildElementFromTextNode((Element) r.getParentNode(), r);
-                break;
             }
         }
     }
@@ -1032,7 +994,6 @@ public class ConfigXml {
         // alwaysLocalNets
         options.overwriteRemoteDeviceNamesOnConnect = getContentOrDefault(elementOptions.getElementsByTagName("overwriteRemoteDeviceNamesOnConnect").item(0), options.overwriteRemoteDeviceNamesOnConnect);
         options.tempIndexMinBlocks = getContentOrDefault(elementOptions.getElementsByTagName("tempIndexMinBlocks").item(0), options.tempIndexMinBlocks);
-        options.defaultFolderPath = getContentOrDefault(elementOptions.getElementsByTagName("defaultFolderPath").item(0), "");
         options.setLowPriority = getContentOrDefault(elementOptions.getElementsByTagName("setLowPriority").item(0), options.setLowPriority);
         // minHomeDiskFree
         options.maxFolderConcurrency = getContentOrDefault(elementOptions.getElementsByTagName("maxFolderConcurrency").item(0), options.maxFolderConcurrency);
@@ -1044,210 +1005,11 @@ public class ConfigXml {
         options.stunServer = getContentOrDefault(elementOptions.getElementsByTagName("stunServer").item(0), options.stunServer);
         options.databaseTuning = getContentOrDefault(elementOptions.getElementsByTagName("databaseTuning").item(0), options.databaseTuning);
         options.maxConcurrentIncomingRequestKiB = getContentOrDefault(elementOptions.getElementsByTagName("maxConcurrentIncomingRequestKiB").item(0), options.maxConcurrentIncomingRequestKiB);
+        options.announceLanAddresses = getContentOrDefault(elementOptions.getElementsByTagName("announceLANAddresses").item(0), options.announceLanAddresses);
+        options.sendFullIndexOnUpgrade = getContentOrDefault(elementOptions.getElementsByTagName("sendFullIndexOnUpgrade").item(0), options.sendFullIndexOnUpgrade);
+        options.connectionLimitEnough = getContentOrDefault(elementOptions.getElementsByTagName("connectionLimitEnough").item(0), options.connectionLimitEnough);
+        options.connectionLimitMax = getContentOrDefault(elementOptions.getElementsByTagName("connectionLimitMax").item(0), options.connectionLimitMax);
         return options;
-    }
-
-    public List<PendingDevice> getPendingDevices() {
-        /**
-         * Example xml content:
-         *  <pendingDevice time="2019-08-31T13:20:38Z" id="7LTUV3P-Y37HQXK-UUM7S5Q-2NDQT3B-SA4WAT4-T5ODX3V-XRXAF7Z-MXM7GAA" name="PC1" address="89.221.214.1:22067"/>
-         *  <pendingDevice time="2019-08-31T13:21:38Z" id="7LTUV3P-Y37HQXK-UUM7S5Q-2NDQT3B-SA4WAT4-T5ODX3V-XRXAF7Z-MXM7GAB" name="PC2" address="89.221.214.2:22067"/>
-         */
-        List<PendingDevice> pendingDevices = new ArrayList<>();
-        NodeList nodePendingDevice = mConfig.getDocumentElement().getElementsByTagName("pendingDevice");
-        for (int i = 0; i < nodePendingDevice.getLength(); i++) {
-            Element r = (Element) nodePendingDevice.item(i);
-            PendingDevice pendingDevice = new PendingDevice();
-            pendingDevice.address = getAttributeOrDefault(r, "address", pendingDevice.address);
-            pendingDevice.deviceID = getAttributeOrDefault(r, "id", pendingDevice.deviceID);
-            pendingDevice.name = getAttributeOrDefault(r, "name", pendingDevice.name);
-            pendingDevice.time = getAttributeOrDefault(r, "time", pendingDevice.time);
-
-            LogV("pendingDevice.name=" + pendingDevice.name + "/pendingDevice.deviceID=" + pendingDevice.deviceID + "/pendingDevice.time=" +  pendingDevice.time);
-            pendingDevices.add(pendingDevice);
-        }
-        Collections.sort(pendingDevices, PENDING_DEVICES_COMPARATOR);
-        return pendingDevices;
-    }
-
-    /**
-     * Permanently ignore a device when it tries to connect.
-     * Ignored devices will not trigger the consent notification.
-     */
-    public void ignoreDevice(String deviceId) {
-        /**
-         * Example xml content:
-         *  <remoteIgnoredDevice time="2019-08-31T14:46:13Z" id="7LTUV3P-Y37HQXK-UUM7S5Q-2NDQT3B-SA4WAT4-T5ODX3V-XRXAF7Z-MXM7GAA" name="PC1" address="185.207.107.1:22067"></remoteIgnoredDevice>
-         *  <remoteIgnoredDevice time="2019-08-31T14:47:13Z" id="7LTUV3P-Y37HQXK-UUM7S5Q-2NDQT3B-SA4WAT4-T5ODX3V-XRXAF7Z-MXM7GAB" name="PC2" address="185.207.107.2:22067"></remoteIgnoredDevice>
-         */
-        if (deviceId == null || deviceId.isEmpty()) {
-            Log.e(TAG, "ignoreDevice: deviceId == null or empty.");
-            return;
-        }
-
-        // Check if the device has already been ignored.
-        NodeList nodeRemoteIgnoredDevice = mConfig.getDocumentElement().getElementsByTagName("remoteIgnoredDevice");
-        for (int i = 0; i < nodeRemoteIgnoredDevice.getLength(); i++) {
-            Element r = (Element) nodeRemoteIgnoredDevice.item(i);
-            if (getAttributeOrDefault(r, "id", "").equals(deviceId)) {
-                // Device already ignored.
-                Log.d(TAG, "Device already ignored [" + deviceId + "]");
-                return;
-            }
-        }
-
-        /**
-         * Ignore device by moving its corresponding "pendingDevice" entry to
-         * a newly created "remoteIgnoredDevice" entry. We take a shortcut here:
-         * As the element structure is the same for both nodes, we just rename the
-         * "pendingDevice" node to "remoteIgnoredDevice".
-         */
-        NodeList nodePendingDevice = mConfig.getDocumentElement().getElementsByTagName("pendingDevice");
-        for (int i = 0; i < nodePendingDevice.getLength(); i++) {
-            Element r = (Element) nodePendingDevice.item(i);
-            if (getAttributeOrDefault(r, "id", "").equals(deviceId)) {
-                mConfig.renameNode(r, r.getNamespaceURI(), "remoteIgnoredDevice");
-                Log.d(TAG, "Ignored device [" + deviceId + "]");
-                return;
-            }
-        }
-
-        // We didn't find the device to ignore in pending device tags.
-        Log.w(TAG, "ignoreDevice: Pending device not found [" + deviceId + "]");
-    }
-
-    /**
-     * Permanently ignore a folder when it is offered.
-     * Ignored folders will not trigger the consent notification.
-     */
-    public void ignoreFolder(String deviceId, String folderId) {
-        /**
-         * Example xml content:
-         *  <device ...>
-         *      <ignoredFolder time="2019-11-10T14:33:46.777Z" id="9MeeC-6yyAY" label="test_folder"></ignoredFolder>
-         *  </device>
-         */
-        if (deviceId == null || deviceId.isEmpty()) {
-            Log.e(TAG, "ignoreFolder: deviceId == null or empty.");
-            return;
-        }
-        if (folderId == null || folderId.isEmpty()) {
-            Log.e(TAG, "ignoreFolder: folderId == null or empty.");
-            return;
-        }
-
-        // Prevent enumerating "<device>" tags below "<folder>" nodes by enumerating child nodes manually.
-        NodeList documentChildNodes = mConfig.getDocumentElement().getChildNodes();
-        for (int i = 0; i < documentChildNodes.getLength(); i++) {
-            Node documentChildNode = documentChildNodes.item(i);
-            if (documentChildNode.getNodeName().equals("device")) {
-                // Found a "<device>" node.
-                String nodeDeviceId = getAttributeOrDefault((Element) documentChildNode, "id", "");
-                if (nodeDeviceId.equals(deviceId)) {
-                    // Found the correct "<device>" node containing "deviceId".
-                    NodeList deviceChildNodes = documentChildNode.getChildNodes();
-
-                    // Enumerate child nodes to check if the folder is already ignored.
-                    for (int j = 0; j < deviceChildNodes.getLength(); j++) {
-                        Node deviceChildNode = deviceChildNodes.item(j);
-                        if (deviceChildNode.getNodeName().equals("ignoredFolder")) {
-                            // Found an "<ignoredFolder>" node below the "<device>" node.
-                            String nodeFolderID = getAttributeOrDefault((Element) deviceChildNode, "id", "");
-                            if (nodeFolderID.equals(folderId)) {
-                                // Found the correct "<ignoredFolder>" node containing "folderId".
-                                Log.d(TAG, "Folder [" + folderId + "] offered by device [" + deviceId + "] already ignored.");
-                                return;
-                            }
-                        }
-                    }
-
-                    // The folder share request is still pending.
-                    for (int j = 0; j < deviceChildNodes.getLength(); j++) {
-                        Node deviceChildNode = deviceChildNodes.item(j);
-                        if (deviceChildNode.getNodeName().equals("pendingFolder")) {
-                            // Found a "<pendingFolder>" node below the "<device>" node.
-                            Element pendingFolderElement = (Element) deviceChildNode;
-                            String nodeFolderId = getAttributeOrDefault(pendingFolderElement, "id", "");
-                            if (nodeFolderId.equals(folderId)) {
-                                /**
-                                 * Found the correct "<pendingFolder>" node containing "folderId".
-                                 *
-                                 * Ignore folder by moving its corresponding "pendingFolder" entry to
-                                 * a newly created "ignoredFolder" entry. We take a shortcut here:
-                                 * As the element structure is the same for both nodes, we just rename the
-                                 * "pendingFolder" node to "ignoredFolder".
-                                 */
-                                mConfig.renameNode(pendingFolderElement, pendingFolderElement.getNamespaceURI(), "ignoredFolder");
-                                Log.d(TAG, "Ignored folder [" + folderId + "] offered by device [" + deviceId + "]");
-                                return;
-                            }
-                        }
-                    }
-
-                    // We've already found and handled the correct "<device id="[deviceId]">" node.
-                    break;
-                }
-            }
-        }
-
-        // We didn't find the pending folder to ignore.
-        Log.w(TAG, "ignoreFolder: Pending folder [" + folderId + "] offered by device [" + deviceId + "] not found.");
-    }
-
-    private void removePendingFolder(String deviceId, String folderId) {
-        /**
-         * Example xml content:
-         *  <device ...>
-         *      <pendingFolder time="2019-11-10T14:33:46.777Z" id="9MeeC-6yyAY" label="test_folder"></pendingFolder>
-         *  </device>
-         */
-        if (deviceId == null || deviceId.isEmpty()) {
-            Log.e(TAG, "removePendingFolder: deviceId == null or empty.");
-            return;
-        }
-        if (folderId == null || folderId.isEmpty()) {
-            Log.e(TAG, "removePendingFolder: folderId == null or empty.");
-            return;
-        }
-
-        // Prevent enumerating "<device>" tags below "<folder>" nodes by enumerating child nodes manually.
-        NodeList documentChildNodes = mConfig.getDocumentElement().getChildNodes();
-        for (int i = 0; i < documentChildNodes.getLength(); i++) {
-            Node documentChildNode = documentChildNodes.item(i);
-            if (documentChildNode.getNodeName().equals("device")) {
-                // Found a "<device>" node.
-                String nodeDeviceId = getAttributeOrDefault((Element) documentChildNode, "id", "");
-                if (nodeDeviceId.equals(deviceId)) {
-                    // Found the correct "<device>" node containing "deviceId".
-                    NodeList deviceChildNodes = documentChildNode.getChildNodes();
-
-                    // Look for the "<pendingFolder>" node.
-                    for (int j = 0; j < deviceChildNodes.getLength(); j++) {
-                        Node deviceChildNode = deviceChildNodes.item(j);
-                        if (deviceChildNode.getNodeName().equals("pendingFolder")) {
-                            // Found a "<pendingFolder>" node below the "<device>" node.
-                            Element pendingFolderElement = (Element) deviceChildNode;
-                            String nodeFolderId = getAttributeOrDefault(pendingFolderElement, "id", "");
-                            if (nodeFolderId.equals(folderId)) {
-                                /**
-                                 * Found the correct "<pendingFolder>" node containing "folderId".
-                                 * Remove "<pendingFolder>" node.
-                                 */
-                                Log.d(TAG, "removePendingFolder: Removing pendingFolder [" + folderId + "] offered by device [" + deviceId + "]");
-                                removeChildElementFromTextNode((Element) pendingFolderElement.getParentNode(), pendingFolderElement);
-                                return;
-                            }
-                        }
-                    }
-
-                    // We've already found and handled the correct "<device id="[deviceId]">" node.
-                    break;
-                }
-            }
-        }
-
-        // We didn't find the pending folder to remove.
-        LogV("removePendingFolder: Pending folder [" + folderId + "] offered by device [" + deviceId + "] not found.");
     }
 
     public void setDevicePause(String deviceId, Boolean paused) {
@@ -1360,6 +1122,9 @@ public class ConfigXml {
         folder.versioning = new Folder.Versioning();
         folder.versioning.type = "trashcan";
         folder.versioning.params.put("cleanoutDays", Integer.toString(14));
+        folder.versioning.cleanupIntervalS = 0;
+        folder.versioning.fsPath = "";
+        folder.versioning.fsType = "basic";
 
         // Add folder to config.
         LogV("addSyncthingCameraFolder: Adding folder to config ...");
@@ -1417,7 +1182,7 @@ public class ConfigXml {
         try {
             // Write XML header.
             FileOutputStream fileOutputStream = new FileOutputStream(mConfigTempFile);
-            fileOutputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes("UTF-8"));
+            fileOutputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes(StandardCharsets.UTF_8));
 
             // Prepare Object-to-XML transform.
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -1425,11 +1190,12 @@ public class ConfigXml {
             transformer.setOutputProperty(OutputKeys.METHOD, "xml");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-16");
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            transformer.setOutputProperty(OutputKeys.INDENT, "no");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
             // Output XML body.
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            StreamResult streamResult = new StreamResult(new OutputStreamWriter(byteArrayOutputStream, "UTF-8"));
+            StreamResult streamResult = new StreamResult(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8));
             transformer.transform(new DOMSource(mConfig), streamResult);
             byte[] outputBytes = byteArrayOutputStream.toByteArray();
             fileOutputStream.write(outputBytes);

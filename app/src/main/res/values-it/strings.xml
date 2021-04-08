@@ -25,7 +25,6 @@ Si prega di segnalare eventuali problemi su Github.</string>
     <string name="storage_permission_title">Autorizzazione Memoria</string>
     <string name="storage_permission_desc">Syncthing deve accedere alla tua memoria per poter sincronizzare i file.</string>
     <string name="dialog_all_files_access_not_supported">Il tuo dispositivo non supporta l\'accesso a tutti i file</string>
-
     <!-- Slide "Ignore battery optimizations" -->
     <string name="ignore_doze_permission_title">Ottimizzazione della batteria</string>
     <string name="ignore_doze_permission_os_notice">Su Android TV può accadere che l\'app venga terminata mentre è in esecuzione in background. Una soluzione è disponibile nella wiki a \'%1$s/%2$s\'.</string>
@@ -92,6 +91,9 @@ Si prega di segnalare eventuali problemi su Github.</string>
 
     <!-- MainActivity -->
 
+
+    <!-- Main bottom navigation view -->
+    <string name="activity_main_bottom_navigation_rescan_all">Scansiona tutto</string>
 
 
     <!-- Main menu button -->
@@ -167,8 +169,6 @@ Si prega di segnalare eventuali problemi su Github.</string>
 
     <!-- Suggest File Manager App Dialog -->
     <string name="suggest_file_manager_app_dialog_title">Non è stato trovato un file manager compatibile</string>
-    <string name="suggest_file_manager_app_dialog_text">Consigliamo di installare il file manager open-source \"Simple File Manager\" da F-Droid. Vuoi aprire la sua pagina sull\'app store?</string>
-
     <!-- DeviceListFragment -->
 
     <!-- Devices tab title -->
@@ -197,6 +197,10 @@ Si prega di segnalare eventuali problemi su Github.</string>
 
     <!-- Indicates that the device connection is unknown -->
     <string name="device_state_unknown">Sconosciuto</string>
+
+    <!-- Last seen title -->
+    <string name="device_last_seen">Ultimo accesso:\u0020%1$s</string>
+    <string name="device_last_seen_never">Mai</string>
 
     <!-- Title for the listing of shared folders with a colon and space appended -->
     <string name="shared_folders_title_colon">Caretelle:\u0020</string>
@@ -252,7 +256,6 @@ Si prega di segnalare eventuali problemi su Github.</string>
 
     <!-- Setting title -->
     <string name="directory">Cartella</string>
-
     <!-- Setting title and description -->
     <string name="folder_fileWatcher">Monitorare i cambiamenti</string>
     <string name="folder_fileWatcherDescription">Chiede al sistema operativo di notificare le modifiche ai file. Se disabilitato, ritorna a scansioni orarie periodiche.</string>
@@ -513,8 +516,6 @@ Si prega di segnalare eventuali problemi su Github.</string>
     <string name="run_in_flight_mode_summary">Abilitando questa opzione permetterai a Syncthing di funzionare anche quando sei offline. Da utilizzare se il tuo dispositivo ha problemi a rilevare le connessioni Wi-Fi in modalità aereo.</string>
 
     <string name="run_on_time_schedule_title">Esegui secondo programmazione</string>
-    <string name="run_on_time_schedule_summary">Abilitando questa opzione la sincronizzazione verrà eseguita ogni ora per 5 minuti. Permette di risparmiare molta batteria ma necessita che il ricevente sia online. Nota bene: potrebbe lasciare alcuni file non sincronizzati fino alla successiva esecuzione.</string>
-
     <!-- Preferences - Behaviour -->
     <string name="behaviour_autostart_title">Avvio automatico</string>
     <string name="behaviour_autostart_summary">Esegui l\'app automaticamente quando viene avviato il dispositivo.</string>
@@ -522,13 +523,6 @@ Si prega di segnalare eventuali problemi su Github.</string>
     <string name="use_root_title">Esegui Syncthing come Superutente</string>
 
     <string name="use_root_summary">Questa è una caratteristica instabile che può causare problemi con Syncthing e con il dispositivo. In caso di problemi, potrebbe essere necessario reinstallare Syncthing.</string>
-
-    <string name="suggest_new_folder_root_title">Seleziona nuova cartella radice</string>
-
-    <string-array name="suggest_new_folder_root_entries">
-        <item>[memoria_esterna]/Android/data</item>
-        <item>[memoria_esterna]/Android/media</item>
-    </string-array>
 
     <string name="launcher_show_camera_icon_title">Mostra icona fotocamera nel launcher</string>
 
@@ -562,7 +556,7 @@ Si prega di segnalare eventuali problemi su Github.</string>
     </string-array>
 
     <string-array name="versioning_types">
-        <item>Nessono</item>
+        <item>Nessuno</item>
         <item>Cestino</item>
         <item>Semplice</item>
         <item>Cadenzato</item>

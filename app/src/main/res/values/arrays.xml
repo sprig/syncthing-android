@@ -17,19 +17,15 @@
 
     <!-- Preference screen -->
     <string-array name="app_theme_names">
-        <item>Light</item>
-        <item>Dark</item>
+        <item>@string/preference_app_theme_follow_system</item>
+        <item>@string/preference_app_theme_follow_light</item>
+        <item>@string/preference_app_theme_follow_dark</item>
     </string-array>
 
     <string-array name="app_theme_values">
+        <item>-1</item>
         <item>1</item>
         <item>2</item>
-    </string-array>
-
-    <!-- Preference screen -->
-    <string-array name="suggest_new_folder_root_values">
-        <item>external_android_data</item>
-        <item>external_android_media</item>
     </string-array>
 
 </resources>

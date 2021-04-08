@@ -64,12 +64,24 @@ public class Folder {
     // see PR #6573
     public int maxConcurrentWrites = 2;
 
+    // Since v1.8.0
+    // see PR #6746: "all", "copy_file_range", "duplicate_extents", "ioctl", "sendfile", "standard"
+    public String copyRangeMethod = "standard";
+
+    // Since v1.9.0
+    // see https://github.com/syncthing/syncthing/commit/932d8c69de9e34824ecc4d5de0a482dfdb71936e
+    public Boolean caseSensitiveFS = false;
+
     // Folder Status
     public String invalid;
 
     public static class Versioning implements Serializable {
         public String type;
+        public int cleanupIntervalS;
         public Map<String, String> params = new HashMap<>();
+        // Since v1.14.0
+        public String fsPath;
+        public String fsType;           // default: "basic"
     }
 
     public static class MinDiskFree {

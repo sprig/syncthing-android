@@ -28,7 +28,6 @@ public class Device {
     public String introducedBy = "";
     public boolean introducer = false;
     public boolean paused = false;
-    public List<PendingFolder> pendingFolders;
     public List<IgnoredFolder> ignoredFolders;
 
     // private static final String TAG = "Device";
@@ -126,8 +125,8 @@ public class Device {
                 return false;
             case 56:
                 // unluhnify(deviceID)
-                byte bytesIn[] = deviceID.getBytes();
-                byte res[] = new byte[52];
+                byte[] bytesIn = deviceID.getBytes();
+                byte[] res = new byte[52];
                 for (int i = 0; i < 4; i++) {
                     byte[] p = Arrays.copyOfRange(bytesIn, i*(13+1), (i+1)*(13+1)-1);
                     System.arraycopy(p, 0, res, i*13, 13);
