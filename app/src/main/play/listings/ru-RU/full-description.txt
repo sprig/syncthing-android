@@ -8,7 +8,7 @@
 * UI explains why syncthing is running or not.
 * Проблема с расходом батареи решена.
 * Discover other Syncthing devices on the same network and easily add them.
-* Android 8, 9 and 10 support.
+* Supports two-way synchronization on external SD card since Android 11.
 
 Syncthing-Fork для Android - это обёртка для Syncthing, предоставляющая интерфейс Android вместо встроенного в Syncthing веб-интерфейса. Syncthing заменяет проприетарные облачные сервисы чем-то открытым, достойным доверия и децентрализованным. Ваши данные - только ваши, и вы достойны решать, где они будут храниться, будут ли они доступны третьим сторонам и как они будут передаваться через Интернет.
 
@@ -18,7 +18,7 @@ Syncthing-Fork для Android - это обёртка для Syncthing, пред
 * Сделать улучшения конфигурируемыми в интерфейсе, пользователи должны иметь возможность включать и выключать их
 
 Сравнение между основным приложением и этим форком на момент написания:
-* Оба содержат бинарный файл syncthing, собранный из официального исходного кода на GitHub:syncthing/syncthing
+* Both contain the syncthing binary built from the official source at GitHub
 * Функционал и надёжность Syncthing зависит от версии бинарного подмодуля sycthing.
 * Форк идёт в ногу с оригиналом, и иногда они подтягивают мои изменения.
 * Стратегия и частота релиза отличается

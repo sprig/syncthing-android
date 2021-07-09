@@ -484,6 +484,10 @@ public class RestApi {
         synchronized (mConfigLock) {
             String urlProtocol = Constants.osSupportsTLS12() ? "https" : "http";
             try {
+                if (mConfig.gui.address == null) {
+                    Log.e(TAG, "getWebGuiUrl: mConfig.gui.address == null, returning 127.0.0.1:8384");
+                    return new URL(urlProtocol + "://127.0.0.1:8384");
+                }
                 return new URL(urlProtocol + "://" + mConfig.gui.address);
             } catch (MalformedURLException e) {
                 throw new RuntimeException("Failed to parse web interface URL", e);
@@ -968,12 +972,15 @@ public class RestApi {
 
             for (int i = 0; i < jsonEvents.size(); i++) {
                 JsonElement json = jsonEvents.get(i);
-                Event event = mGson.fromJson(json, Event.class);
-
-                if (lastId < event.id)
-                    lastId = event.id;
-
-                listener.onEvent(event, json);
+                try {
+                    Event event = mGson.fromJson(json, Event.class);
+                    if (lastId < event.id) {
+                        lastId = event.id;
+                    }
+                    listener.onEvent(event, json);
+                } catch (com.google.gson.JsonSyntaxException ex) {
+                    Log.e(TAG, "getEvents: Skipping event due to JsonSyntaxException, raw=[" + json.toString() + "]");
+                }
             }
 
             listener.onDone(lastId);
@@ -1024,9 +1031,25 @@ public class RestApi {
                                                     final String lastItemFinishedAction,
                                                     final String lastItemFinishedItem,
                                                     final String lastItemFinishedTime) {
+        /**
+         * lastItemFinishedAction RAW data from Syncthing
+         *  update:     A file was changed or deleted
+         */
+        String realLastItemFinishedAction = lastItemFinishedAction;
+
+        // Check if the file was updated or deleted in reality.
+        if (lastItemFinishedAction.equals("update")) {
+            Folder folder = getFolderByID(folderId);
+            if (!(folder == null || folder.path == null)) {
+                boolean fileExists = (new File (folder.path + "/" + lastItemFinishedItem)).exists();
+                if (!fileExists) {
+                    realLastItemFinishedAction = "delete";
+                }
+            }
+        }
         mLocalCompletion.setLastItemFinished(
                 folderId,
-                lastItemFinishedAction,
+                realLastItemFinishedAction,
                 lastItemFinishedItem,
                 lastItemFinishedTime
         );

@@ -1,18 +1,17 @@
-* Syncthing v1.15.1
+* Syncthing v1.17.0
 
 Enhanced
 --
-- A11: Folder picker (#690)
-- Time schedule, per folder/device power source (thanks to Helium314 #765 #766)
-- Quick setting tiles (thanks to Helium314 #768)
+-
 
 
 Fixes
 --
-- Stop qr scanner (#748)
-- A11: Fix opening file manager (#762)
+- Fix opening file intents used in "Recent Changes" dialog (#816)
+- Clear prefs when importing backup from Syncthing app (#821)
+- Fix device orientation change in settings menus (#824 @vbh)
 
 
 Others
 --
-- If you have problems because of Android restrictions, see GitHub for more info on how to get a working install.
+- Breaking change: Syncthing Camera folder is now /Android/media (#809)

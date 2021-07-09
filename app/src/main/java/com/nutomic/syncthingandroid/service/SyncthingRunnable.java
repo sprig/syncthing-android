@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.MulticastLock;
 import android.os.Build;
 import android.os.Environment;
 import android.os.PowerManager;
@@ -16,6 +18,7 @@ import com.google.common.io.Files;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
 import com.nutomic.syncthingandroid.service.Constants;
+import com.nutomic.syncthingandroid.util.FileUtils;
 import com.nutomic.syncthingandroid.util.Util;
 
 import java.io.BufferedReader;
@@ -158,11 +161,18 @@ public class SyncthingRunnable implements Runnable {
             );
         }
 
+        MulticastLock multicastLock = null;
         Process process = null;
         try {
             if (wakeLock != null) {
                 wakeLock.acquire();
             }
+
+            // See issue #735: Android 11 blocks local discovery if we did not acquire MulticastLock.
+            WifiManager wifi = (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            multicastLock = wifi.createMulticastLock("multicastLock");
+            multicastLock.setReferenceCounted(true);
+            multicastLock.acquire();
 
             /**
              * Setup and run a new syncthing instance
@@ -249,6 +259,10 @@ public class SyncthingRunnable implements Runnable {
         } finally {
             if (wakeLock != null) {
                 wakeLock.release();
+            }
+            if (multicastLock != null) {
+                multicastLock.release();
+                multicastLock = null;
             }
             if (process != null) {
                 process.destroy();
@@ -442,7 +456,7 @@ public class SyncthingRunnable implements Runnable {
             int lineCount = lnr.getLineNumber();
             lnr.close();
 
-            File tempFile = new File(mContext.getExternalFilesDir(null), "syncthing.log.tmp");
+            File tempFile = new File(FileUtils.getExternalFilesDir(mContext, null), "syncthing.log.tmp");
 
             BufferedReader reader = new BufferedReader(new FileReader(mLogFile));
             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
@@ -468,9 +482,10 @@ public class SyncthingRunnable implements Runnable {
         targetEnv.put("HOME", Environment.getExternalStorageDirectory().getAbsolutePath());
         targetEnv.put("STTRACE", TextUtils.join(" ",
                 mPreferences.getStringSet(Constants.PREF_DEBUG_FACILITIES_ENABLED, new HashSet<>())));
-        File externalFilesDir = mContext.getExternalFilesDir(null);
-        if (externalFilesDir != null)
+        File externalFilesDir = FileUtils.getExternalFilesDir(mContext, null);
+        if (externalFilesDir != null) {
             targetEnv.put("STGUIASSETS", externalFilesDir.getAbsolutePath() + "/gui");
+        }
         targetEnv.put("STMONITORED", "1");
         targetEnv.put("STNOUPGRADE", "1");
         if (mPreferences.getBoolean(Constants.PREF_USE_TOR, false)) {

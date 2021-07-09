@@ -18,6 +18,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- ACCESS_COARSE_LOCATION is required to get WiFi's SSID on 8.1 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- ACCESS_FINE_LOCATION is required to get WiFi's SSID on 10 "Q" -->
@@ -33,6 +34,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- MANAGE_EXTERNAL_STORAGE is required on Android 11 "R" -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <!-- CHANGE_WIFI_MULTICAST_STATE is required for local discovery to work on Android 11 "R" -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
     <!-- Permissions required for WiFi-Direct -->
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -51,6 +54,7 @@
         android:hardwareAccelerated="true"
         android:requestLegacyExternalStorage="true"
         android:preserveLegacyExternalStorage="true"
+        android:hasFragileUserData="true"
 
         android:networkSecurityConfig="@xml/network_security_config">
         <activity
@@ -174,6 +178,7 @@
         </activity>
         <activity android:name=".activities.SettingsActivity"
             android:label="@string/settings_title"
+            android:configChanges="orientation|screenSize"
             android:parentActivityName=".activities.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -258,5 +263,11 @@
             </intent-filter>
         </service>
     </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
 
 </manifest>

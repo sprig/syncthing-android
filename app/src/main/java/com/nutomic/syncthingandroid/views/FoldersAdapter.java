@@ -3,6 +3,7 @@ package com.nutomic.syncthingandroid.views;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
+// import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +36,7 @@ import static android.view.View.VISIBLE;
  */
 public class FoldersAdapter extends ArrayAdapter<Folder> {
 
-    private static final String TAG = "FoldersAdapter";
+    // private static final String TAG = "FoldersAdapter";
 
     private final Context mContext;
 
@@ -215,13 +216,16 @@ public class FoldersAdapter extends ArrayAdapter<Folder> {
         }
         String finishedItemText = "\u21cc";
         switch (cachedFolderStatus.lastItemFinishedAction) {
-            case "update":
-                finishedItemText += " \u229b";
-                break;
             case "delete":
+                // (x)
                 finishedItemText += " \u2297";
                 break;
+            case "update":
+                // (*)
+                finishedItemText += " \u229b";
+                break;
             default:
+                // !?
                 finishedItemText += " \u2049";
         }
         finishedItemText += " " + Util.getPathEllipsis(cachedFolderStatus.lastItemFinishedItem);
