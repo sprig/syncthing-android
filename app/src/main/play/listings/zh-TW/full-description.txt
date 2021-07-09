@@ -8,7 +8,7 @@
 * UI explains why syncthing is running or not.
 解決了耗電的問題
 * Discover other Syncthing devices on the same network and easily add them.
-* Android 8, 9 and 10 support.
+* Supports two-way synchronization on external SD card since Android 11.
 
 Syncthing-Fork for Android 提供了 android 系統本身的使用界面來替換 Syncthing 內建的網路界面。Syncthing 用開放、可靠、去中心化的方式取代專有的同步與雲端服務。你的資料只屬於你自己，所以可選擇儲存的位置、與第三方軟體共享的方式，與透過網路傳輸的模式。
 
@@ -18,7 +18,7 @@ Syncthing-Fork for Android 提供了 android 系統本身的使用界面來替�
 *可在UI中配置增强功能，用户应能够打开和关闭它们
 
 在写这篇文章时上游和分叉之间的比较：
-*两者都包含从GitHub官方来源构建的syncthing二进制文件：syncthing/syncthing
+* Both contain the syncthing binary built from the official source at GitHub
 *同步功能和可靠性取决于syncthing二进制子模块版本。
 * Fork与上游相处，有时他们会接受我的改进。
 *策略和发布频率不同
