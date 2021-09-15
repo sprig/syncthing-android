@@ -6,6 +6,7 @@
 <a href="https://liberapay.com/~1534877" alt="LiberaPay"><img src="https://img.shields.io/liberapay/patrons/Syncthing-Fork.svg?style=social" /></a>
 <a href="https://tooomm.github.io/github-release-stats/?username=Catfriend1&repository=syncthing-android" alt="GitHub Stats"><img src="https://img.shields.io/github/downloads/Catfriend1/syncthing-android/total.svg" /></a>
 <a href="https://www.youtube.com/watch?v=rYHQzqSjKWQ" alt="Tutorial: Youtube-Video"><img src="https://img.shields.io/badge/Tutorial-Youtube--Video-blueviolet" /></a>
+<a href="https://www.transifex.com/projects/p/syncthing-android-1" alt="The project is translated on Transifex"><img src="https://img.shields.io/badge/Translation-informational" /></a>
 
 A wrapper of [Syncthing](https://github.com/syncthing/syncthing) for Android. Head to the "releases" section or F-Droid for builds. Please open an issue under this fork if you need help. Important: Please don't file bugs at the upstream repository "syncthing-android" if you are using this fork.
 
@@ -32,64 +33,71 @@ See our document on privacy: [privacy-policy.md](https://github.com/Catfriend1/s
 - Make enhancements configurable in the settings UI, e.g. users should be able to turn them on and off
 - Let's get ready for newer Android versions that put limits on background syncing tools. We need your bug reports as detailed as possible
 
-# Translations
-
-The project is translated on [Transifex](https://www.transifex.com/projects/p/syncthing-android-1).
-
 # Building
 
 ## Prerequisites
+
+If you miss any prerequisite, the shell scripts will abort with an error and tell you what you need to do. In case you like to dive into building directly, you can skip this section and jump directly to "Build instructions".
+
 - Android SDK
-`You can skip this if you are using Android Studio.`
-- Android NDK r20b
-`$ANDROID_NDK_HOME environment variable should point at the root directory of your NDK. If the variable is not set, build-syncthing.py will automatically try to download and setup the NDK.`
-- Go 1.13.5
-`Make sure, Go is installed and available on the PATH environment variable. If Go is not found on the PATH environment variable, build-syncthing.py will automatically try to download and setup GO on the PATH.`
-- Python 3.6.5
-`Make sure, Python is installed and available on the PATH environment variable.`
+```
+# This command will help you install the minimum Android SDK components to build this project in case you don't use Android Studio.
+python install_minimum_android_sdk_prerequisites.py
+```
+- Android NDK r22b
+```
+$ANDROID_NDK_HOME environment variable should point at the root directory of your NDK. If the variable is not set, build-syncthing.py will automatically try to download and setup the NDK.
+```
+- Go 1.17
+```
+Make sure, Go is installed and available on the PATH environment variable. If Go is not found on the PATH environment variable, build-syncthing.py will automatically try to download and setup GO on the PATH.
+```
+- Python 3.9.6 64-Bit
+```
+Make sure, Python is installed and available on the PATH environment variable. Download 'https://www.python.org/ftp/python/3.9.6/python-3.9.6-amd64.exe' and run 'python-3.9.6-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0'
+```
 - Git (for Linux) or Git for Windows
-`Make sure, git (or git.exe) is installed and available on the PATH environment variable. If Git is not found on the PATH environment variable, build-syncthing.py will automatically try to download and setup MinGit 2.19.0-x64 on the PATH.`
-- Java Version 8 (you might need to set `$JAVA_HOME` accordingly)
+```
+Make sure, git (or git.exe) is installed and available on the PATH environment variable. If Git is not found on the PATH environment variable, build-syncthing.py will automatically try to download and setup MinGit 2.19.0-x64 on the PATH.
+```
+- Java Development Version 11
+```
+"java" should be on the PATH environment variable. Download 'jdk-11.0.11_windows-x64_bin.exe' from Oracle and run the installer. Log off and back on to let the new PATH variable take effect.
+```
 
 ## Build instructions
 
-Make sure you clone the project with
-`git clone https://github.com/Catfriend1/syncthing-android.git --recursive`.
-Alternatively, run `git submodule init && git submodule update` in the project folder.
+```
+git clone https://github.com/Catfriend1/syncthing-android.git --recursive
+```
+
+Edit "App_build_and_release.cmd" and set "SKIP_RELEASE_BUILD=1" if you don't need to upload signed releases to Google Play. This will simplify things for you.
 
 ### Build on Linux
 
 A Linux VM, for example running Debian, is recommended to build this.
 
-Build Syncthing and the Syncthing-Android wrapper using the following commands:
-
-`./gradlew buildNative`
-
-`./gradlew lint assembleDebug`
+Build SyncthingNative and the Syncthing-Android wrapper using the following commands:
+```
+./gradlew buildNative
+./gradlew lint assembleDebug
+```
 
 You can also use Android Studio to build the apk after you manually ran the `./gradlew buildNative` command in the repository root.
 
 To clean up all files generated during build, use the following commands:
-
-`./gradlew cleanNative`
-
-`./gradlew clean`
+```
+./gradlew cleanNative
+./gradlew clean
+```
 
 ### Build on Windows
 
-`cd /d "YOUR_CLONED_GIT_ROOT"`
-
-`python install_minimum_android_sdk_prerequisites.py`
-
-Edit "setenv.cmd" and adjust Android studio or Java path according to your needs.
-
-`setenv`
-
-`SyncthingNative_update_and_build`
-
-Edit "App_build_and_release.cmd" and set "SKIP_RELEASE_BUILD=1" if you don't need to upload signed releases to Google Play.
-
-`App_build_and_release`
+```
+cd /d "YOUR_CLONED_GIT_ROOT"
+SyncthingNative_update_and_build
+App_build_and_release
+```
 
 # Development Notes
 
