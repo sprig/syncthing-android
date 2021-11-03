@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'com.github.ben-manes.versions'
-    id 'com.github.triplet.play' version '2.8.0'
+    id 'com.github.triplet.play' version '3.6.0'
 }
 
 dependencies {
@@ -66,9 +66,6 @@ android {
         release {
             signingConfig = signingConfigs.release.storeFile ? signingConfigs.release : null
         }
-        gplay {
-            initWith release
-        }
         debug {
             applicationIdSuffix ".debug"
             gradle.buildFinished {
@@ -76,15 +73,6 @@ android {
                     logger.lifecycle("BUILD FAILED")
                 }
             }
-        }
-    }
-
-    playConfigs {
-        release {
-            serviceAccountCredentials = file(System.getenv("SYNCTHING_RELEASE_PLAY_ACCOUNT_CONFIG_FILE") ?: 'keys.json')
-        }
-        gplay {
-            serviceAccountCredentials = file(System.getenv("SYNCTHING_RELEASE_PLAY_ACCOUNT_CONFIG_FILE") ?: 'keys.json')
         }
     }
 
@@ -112,9 +100,9 @@ android {
 }
 
 play {
-    serviceAccountCredentials = file(System.getenv("SYNCTHING_RELEASE_PLAY_ACCOUNT_CONFIG_FILE") ?: 'keys.json')
+    // Use ANDROID_PUBLISHER_CREDENTIALS  environment variable to specify serviceAccountCredentials.
     track = 'beta'
-    resolutionStrategy = 'ignore'
+    resolutionStrategy = com.github.triplet.gradle.androidpublisher.ResolutionStrategy.IGNORE
     defaultToAppBundles = true
 }
 
