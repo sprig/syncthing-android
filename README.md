@@ -3,7 +3,6 @@
 [![License: MPLv2](https://img.shields.io/badge/License-MPLv2-blue.svg)](https://opensource.org/licenses/MPL-2.0)
 <a href="https://github.com/Catfriend1/syncthing-android/releases" alt="GitHub release"><img src="https://img.shields.io/github/release/Catfriend1/syncthing-android/all.svg" /></a>
 <a href="https://f-droid.org/packages/com.github.catfriend1.syncthingandroid" alt="F-Droid release"><img src="https://img.shields.io/f-droid/v/com.github.catfriend1.syncthingandroid.svg" /></a>
-<a href="https://liberapay.com/~1534877" alt="LiberaPay"><img src="https://img.shields.io/liberapay/patrons/Syncthing-Fork.svg?style=social" /></a>
 <a href="https://tooomm.github.io/github-release-stats/?username=Catfriend1&repository=syncthing-android" alt="GitHub Stats"><img src="https://img.shields.io/github/downloads/Catfriend1/syncthing-android/total.svg" /></a>
 <a href="https://www.youtube.com/watch?v=rYHQzqSjKWQ" alt="Tutorial: Youtube-Video"><img src="https://img.shields.io/badge/Tutorial-Youtube--Video-blueviolet" /></a>
 <a href="https://www.transifex.com/projects/p/syncthing-android-1" alt="The project is translated on Transifex"><img src="https://img.shields.io/badge/Translation-informational" /></a>
@@ -14,7 +13,7 @@ A wrapper of [Syncthing](https://github.com/syncthing/syncthing) for Android. He
 
 # Major enhancements in this fork are:
 - Folder, device and overall sync progress can easily be read off the UI.
-- "Syncthing Camera" - an optional feature (with optional permission to use the camera) where you can take pictures with your friend, partner, ... on two phones into one shared and private Syncthing folder. No cloud involved.
+- "Syncthing Camera" - an optional feature (with optional permission to use the camera) where you can take pictures with your friend, partner, ... on two phones into one shared and private Syncthing folder. No cloud involved. (deprecated)
 - "Sync every hour" to save even more battery
 - Individual sync conditions can be applied per device and per folder (for expert users).
 - Recent changes UI, click to open files.
@@ -24,6 +23,9 @@ A wrapper of [Syncthing](https://github.com/syncthing/syncthing) for Android. He
 - Discover other Syncthing devices on the same network and easily add them.
 - Supports two-way synchronization on external sd cards since Android 11.
 - Supports encrypted folders on untrusted devices.
+
+# About Play Store releases:
+- Syncthing-Fork releases on GPlay may - from time to time - not provide the full feature set of this app or just be outdated. This is caused by the store policies and has happened some times in the past. If you still like to download from there, here's the link: https://play.google.com/store/apps/details?id=com.github.catfriend1.syncthingandroid
 
 # Privacy Policy
 See our document on privacy: [privacy-policy.md](https://github.com/Catfriend1/syncthing-android/blob/main/privacy-policy.md).
@@ -45,11 +47,11 @@ If you miss any prerequisite, the shell scripts will abort with an error and tel
 # This command will help you install the minimum Android SDK components to build this project in case you don't use Android Studio.
 python install_minimum_android_sdk_prerequisites.py
 ```
-- Android NDK r22b
+- Android NDK r24
 ```
 $ANDROID_NDK_HOME environment variable should point at the root directory of your NDK. If the variable is not set, build-syncthing.py will automatically try to download and setup the NDK.
 ```
-- Go 1.17.1
+- Go 1.18.1
 ```
 Make sure, Go is installed and available on the PATH environment variable. If Go is not found on the PATH environment variable, build-syncthing.py will automatically try to download and setup GO on the PATH.
 ```
@@ -76,8 +78,9 @@ A Linux VM, for example running Debian, is recommended to build this.
 
 Build SyncthingNative and the Syncthing-Android wrapper using the following commands:
 ```
-apt-get -y install git openjdk-11-jdk
+apt-get -y install git openjdk-11-jdk python
 mkdir -p /root/work
+cd /root/work
 git clone https://github.com/Catfriend1/syncthing-android.git --recursive
 cd /root/work/syncthing-android
 ./gradlew buildNative

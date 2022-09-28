@@ -166,6 +166,9 @@ Vui lòng báo cáo những vấn đề bạn gặp qua Github.</string>
 
     <string name="revert_local_changes">Hoàn tác các thay đổi cục bộ</string>
 
+    <string name="delete_unexpected_items">Xoá các mục không mong đợi</string>
+
+
     <!-- Revert Local Changes Confirmation Dialog -->
     <string name="revert_local_changes_question">Việc này sẽ hoàn tác tất cả thay đổi đã được tạo trên thiết bị này trong thư mục này. Tiếp tục?</string>
 
@@ -188,15 +191,17 @@ Vui lòng báo cáo những vấn đề bạn gặp qua Github.</string>
     <!-- Shown in ListView if no devices are configured -->
     <string name="no_devices_configured">Không có thiết bị nào được thiết lập.\nHãy bắt đầu bằng cách thêm thiết bị mới ngay.</string>
 
+    <string name="deviceEncryptionPasswordHint">Nếu chưa tin cậy, hãy nhập mật khẩu mã hoá</string>
+
     <!-- Indicates that a folder is fully synced to the local device -->
     <string name="device_up_to_date">Đã đồng bộ</string>
 
     <!-- Indicates that the device is currently syncing. Parameter is sync percentage -->
     <string name="device_syncing">Đang đ.bộ (%1$d%%)</string>
+    <string name="device_syncing_percent_bytes">Đang đồng bộ (%1$d%%, %2$s)</string>
 
     <!-- Indicates that there is no connection to the device -->
     <string name="device_disconnected">Đã ngắt k.nối</string>
-
     <!-- Indicates that the device is paused and does not sync -->
     <string name="device_paused">Tạm dừng</string>
 
@@ -318,6 +323,8 @@ Vui lòng báo cáo những vấn đề bạn gặp qua Github.</string>
     <!-- Toast shown if the user selected an invalid location for a new syncthing folder -->
     <string name="toast_invalid_folder_selected">Xin lỗi. Thư mục được chọn không thể được sử dụng. Vui lòng chọn thư mục được đặt trong bộ nhớ trong hoặc ngoài.</string>
 
+    <string name="folder_type_switch_to_receive_encrypted_not_allowed">Việc chuyển các thư mục hiện có sang \'Nhận dữ liệu mã hoá\' không được hỗ trợ.</string>
+
     <string name="ignore_patterns">Mẫu bỏ qua</string>
     <!-- DeviceActivity -->
 
@@ -361,6 +368,11 @@ Vui lòng báo cáo những vấn đề bạn gặp qua Github.</string>
 
     <!-- Setting title -->
     <string name="pause_device">Tạm dừng thiết bị</string>
+
+    <!-- Setting title -->
+    <string name="untrusted_device">Thiết bị chưa tin cậy</string>
+
+    <string name="untrusted_device_explanation">Tất cả thư mục được chia sẻ với thiết bị này phải được bảo vệ bằng mật khẩu, sao cho tất cả dữ liệu đã gửi không thể đọc được mà không có mật khẩu.</string>
 
     <!-- ActionBar item -->
     <string name="delete_device">Xoá thiết bị</string>
@@ -532,7 +544,10 @@ Vui lòng báo cáo những vấn đề bạn gặp qua Github.</string>
     <string name="run_in_flight_mode_summary">Việc bật tùy chọn này sẽ làm cho Syncthing chạy kể cả khi bạn đang ngoại tuyến. Hãy bật nếu thiết bị của bạn gặp vấn đề trong việc phát hiện kết nối Wi-Fi thủ công trong chế độ máy bay.</string>
 
     <string name="run_on_time_schedule_title">Chạy theo lịch trình thời gian</string>
-    <string name="run_on_time_schedule_summary">Việc bật tùy chọn này sẽ cố gắng đồng bộ trong vòng 5 phút nếu các điều kiện chạy được đáp ứng và lần đồng bộ trước cách đây hơn 1 tiếng. Việc này có thể tiết kiệm nhiều pin nhưng yêu cầu các thiết bị đồng bộ khác phải trực tuyến. Vui lòng lưu ý: Việc này có thể để lại các tệp tạm không hoàn chỉnh cho đến khi lần đồng bộ được lên lịch tiếp theo diễn ra.</string>
+    <string name="run_on_time_schedule_summary">Việc bật tuỳ chọn này sẽ cố gắng đồng bộ trong khoảng thời gian được đặt nếu điều kiện chạy được đáp ứng và lần đồng bộ trước cách đây hơn 1 tiếng. Việc này có thể tiết kiệm nhiều pin nhưng bắt buộc các thiết bị đồng bộ khác phải có mạng. Vui lòng lưu ý: Việc này có thể để lại các tệp tạm không hoàn chỉnh cho đến lần đồng bộ tiếp theo.</string>
+
+    <string name="sync_duration_minutes_title">Thời gian chu kỳ đồng bộ</string>
+    <string name="sync_duration_minutes_summary">%1$s phút</string>
 
     <!-- Preferences - Behaviour -->
     <string name="behaviour_autostart_title">Tự động khởi động</string>
@@ -655,10 +670,6 @@ Vui lòng báo cáo những vấn đề bạn gặp qua Github.</string>
     <string name="broadcast_service_control_title">Điều khiển dịch vụ bằng truyền phát</string>
 
     <string name="broadcast_service_control_summary">Mặc định: Tắt. Hãy bật tùy chọn này để bắt đầu và dừng dịch vụ bằng cách gửi truyền phát, vd: từ các ứng dụng tự động hóa của bên thứ ba. Lưu ý: Bạn phải khởi động lại ứng dụng theo cách thủ công sau khi thay đổi tùy chọn này.</string>
-
-    <string name="restart_on_wakeup_title">Khởi động lại khi đánh thức</string>
-
-    <string name="restart_on_wakeup_summary">Mặc định: Bật. Việc tắt tính năng này có thể gây ra việc quét thư mục và kết nối lại thiết bị bị hoãn lại để tiết kiệm pin.</string>
 
     <!-- Dialog shown before config export -->
     <string name="dialog_confirm_export">Có chắc là bạn muốn xuất cấu hình? Các tập tin hiện thời sẽ bị ghi đè.\n\nCẢNH BÁO! Các ứng dụng khác có thể đọc được khoá riêng tư từ vị trí sao lưu và dùng nó để tải về/chỉnh sửa các tập tin đã đồng bộ.</string>
@@ -948,19 +959,11 @@ Vui lòng báo cáo những vấn đề bạn gặp qua Github.</string>
     <!-- Strings representing units for file sizes, from smallest to largest -->
     <string-array name="file_size_units">
         <item>B</item>
-        <item>KiB</item>
-        <item>MiB</item>
-        <item>GiB</item>
-        <item>TiB</item>
     </string-array>
 
     <!-- Strings representing units for transfer rates, from smallest to largest -->
     <string-array name="transfer_rate_units">
         <item>B/s</item>
-        <item>KiB/s</item>
-        <item>MiB/s</item>
-        <item>GiB/s</item>
-        <item>TiB/s</item>
     </string-array>
 
     <!-- Possible folder states -->
@@ -994,10 +997,14 @@ Vui lòng báo cáo những vấn đề bạn gặp qua Github.</string>
     <string name="folder_type_sendreceive">Gửi &amp; Nhận</string>
     <string name="folder_type_sendonly">Chỉ gửi</string>
     <string name="folder_type_receiveonly">Chỉ nhận</string>
+    <string name="folder_type_receive_encrypted">Nhận dữ liệu mã hoá</string>
+
     <!-- Folder type dialog descriptions for folder types -->
     <string name="folder_type_sendreceive_description">Thư mục sẽ gửi các thay đổi đến và nhận các thay đổi từ các thiết bị trên mạng.</string>
     <string name="folder_type_sendonly_description">Các tệp được bảo vệ khỏi các thay đổi được tạo trên các thiết bị khác, nhưng các thay đổi được tạo trên thiết bị này sẽ được gửi đến phần còn lại của cụm.</string>
     <string name="folder_type_receiveonly_description">Các tệp được đồng bộ từ cụm, nhưng các thay đổi được tạo cục bộ sẽ không được gửi đến các thiết bị khác.</string>
+    <string name="folder_type_receive_encrypted_description">Chỉ lưu trữ và đồng bộ dữ liệu đã mã hoá. Các thư mục trên tất cả thiết bị đã kết nối cần phải được thiết lập bằng cùng mật khẩu hoặc cũng thuộc loại \'Nhận dữ liệu mã hoá\'.</string>
+
     <!-- Titles used in the pull order dialog and pull order button in the folder activity -->
     <string name="pull_order">Thứ tự nhận tệp</string>
 

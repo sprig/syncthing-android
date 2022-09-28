@@ -185,10 +185,8 @@ Android требует разрешение доступа к геолокаци
 
     <!-- Indicates that the device is currently syncing. Parameter is sync percentage -->
     <string name="device_syncing">Синхронизация (%1$d%%)</string>
-
     <!-- Indicates that there is no connection to the device -->
     <string name="device_disconnected">Отсоединено</string>
-
     <!-- Indicates that the device is paused and does not sync -->
     <string name="device_paused">Остановлено</string>
 
@@ -488,10 +486,6 @@ Android требует разрешение доступа к геолокаци
     <!-- Toast after entering invalid http proxy address -->
     <string name="toast_invalid_http_proxy_address">Данные не соответствуют синтаксису прокси \'http://[IP/HOSTNAME]:[PORT]\'</string>
 
-    <string name="restart_on_wakeup_title">Перезапуск при пробуждении</string>
-
-    <string name="restart_on_wakeup_summary">По умолчанию: Включено. Выключение данной функции может вызывать задержки сканирования папок и переподключения устройства для экономии заряда батареи.</string>
-
     <!-- Dialog shown before config export -->
     <string name="dialog_confirm_export">Вы точно хотите экспортировать конфигурацию? Существующие файлы будут перезаписаны.\n\nОСТОРОЖНО! Другие приложения могут иметь возможность считать приватный ключ из резервной копии и использовать его, чтобы загрузить/изменить синхронизируемые файлы.</string>
 
@@ -674,19 +668,11 @@ Android требует разрешение доступа к геолокаци
     <!-- Strings representing units for file sizes, from smallest to largest -->
     <string-array name="file_size_units">
         <item>Б</item>
-        <item>КБ</item>
-        <item>МБ</item>
-        <item>ГБ</item>
-        <item>ТБ</item>
     </string-array>
 
     <!-- Strings representing units for transfer rates, from smallest to largest -->
     <string-array name="transfer_rate_units">
         <item>б/с</item>
-        <item>Кб/с</item>
-        <item>Мб/с</item>
-        <item>Гб/с</item>
-        <item>Тб/с</item>
     </string-array>
 
     <string name="state_up_to_date">уточненный</string>

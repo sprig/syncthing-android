@@ -78,10 +78,8 @@ Az összesített statisztika nyilvánosan elérhető a https://data.syncthing.ne
 
     <!-- Indicates that the device is currently syncing. Parameter is sync percentage -->
     <string name="device_syncing">Szinkronizálás (%1$d%%)</string>
-
     <!-- Indicates that there is no connection to the device -->
     <string name="device_disconnected">Kapcsolat bontva</string>
-
     <!-- Indicates that the device is paused and does not sync -->
     <string name="device_paused">Szünteteltetve</string>
 
@@ -301,10 +299,6 @@ Az összesített statisztika nyilvánosan elérhető a https://data.syncthing.ne
     <!-- Toast after entering invalid http proxy address -->
     <string name="toast_invalid_http_proxy_address">A bemenet sérti a proxy szintaxist \'http://[IP/HOSTNAME]:[PORT]\'</string>
 
-    <string name="restart_on_wakeup_title">Újraindítás felébresztéskor</string>
-
-    <string name="restart_on_wakeup_summary">Alapértelmezés: bekapcsolva. A funckió bekapcsolása a mappák szkennelésének és az eszközök újracsatlakozásának késleltetését okozza az akkumulátor kímélése érdekében.</string>
-
     <!-- Dialog shown before config export -->
     <string name="dialog_confirm_export">Biztosan exportálni szeretnéd a konfigurációt? A már létező fájlok felül lesznek írva.
 
@@ -475,19 +469,11 @@ VIGYÁZAT! Más alkalmazások kiolvashatják a backupból a titkos kulcsot, és 
     <!-- Strings representing units for file sizes, from smallest to largest -->
     <string-array name="file_size_units">
         <item>B</item>
-        <item>KiB</item>
-        <item>MiB</item>
-        <item>GiB</item>
-        <item>TiB</item>
     </string-array>
 
     <!-- Strings representing units for transfer rates, from smallest to largest -->
     <string-array name="transfer_rate_units">
         <item>B/s</item>
-        <item>KiB/s</item>
-        <item>MiB/s</item>
-        <item>GiB/s</item>
-        <item>TiB/s</item>
     </string-array>
 
     <string name="state_scanning">Vizsgálat</string>
