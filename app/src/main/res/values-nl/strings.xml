@@ -102,10 +102,8 @@ Als je problemen tegenkomt, meld ze dan via GitHub.</string>
 
     <!-- Indicates that the device is currently syncing. Parameter is sync percentage -->
     <string name="device_syncing">Bezig met synchroniseren (%1$d%%)</string>
-
     <!-- Indicates that there is no connection to the device -->
     <string name="device_disconnected">Niet verbonden</string>
-
     <!-- Indicates that the device is paused and does not sync -->
     <string name="device_paused">Gepauzeerd</string>
 
@@ -330,10 +328,6 @@ Als je problemen tegenkomt, meld ze dan via GitHub.</string>
     <!-- Toast after entering invalid http proxy address -->
     <string name="toast_invalid_http_proxy_address">Invoer is geen correcte proxysyntax \'http://[IP/HOSTNAME]:[PORT]\'</string>
 
-    <string name="restart_on_wakeup_title">Herstarten bij wekken</string>
-
-    <string name="restart_on_wakeup_summary">Standaard: ingeschakeld. Deze functie uitschakelen kan ertoe leiden dat het scannen van mappen en opnieuw verbinden met apparaten uitgesteld wordt om de batterij te besparen.</string>
-
     <!-- Dialog shown before config export -->
     <string name="dialog_confirm_export">Wil je je configuratie echt exporteren? Bestaande bestanden worden overschreven.\n\nWAARSCHUWING: Andere apps kunnen mogelijkerwijs bij de geheime sleutel van de back-up en gesyncte bestanden downloaden/wijzigen.</string>
 
@@ -506,19 +500,11 @@ Als je problemen tegenkomt, meld ze dan via GitHub.</string>
     <!-- Strings representing units for file sizes, from smallest to largest -->
     <string-array name="file_size_units">
         <item>B</item>
-        <item>KiB</item>
-        <item>MiB</item>
-        <item>GiB</item>
-        <item>TiB</item>
     </string-array>
 
     <!-- Strings representing units for transfer rates, from smallest to largest -->
     <string-array name="transfer_rate_units">
         <item>B/s</item>
-        <item>KiB/s</item>
-        <item>MiB/s</item>
-        <item>GiB/s</item>
-        <item>TiB/s</item>
     </string-array>
 
     <string name="state_scanning">Bezig met scannen</string>

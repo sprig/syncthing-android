@@ -89,6 +89,7 @@ S\'il vous plaît, soumettez les problèmes que vous rencontrez via Github.</str
     <!-- Format string for folder file count -->
     <plurals name="files">
         <item quantity="one">%1$d / %2$d Fichier</item>
+        <item quantity="many">%1$d / %2$d Fichiers</item>
         <item quantity="other">%1$d / %2$d Fichiers</item>
     </plurals>
 
@@ -103,10 +104,8 @@ S\'il vous plaît, soumettez les problèmes que vous rencontrez via Github.</str
 
     <!-- Indicates that the device is currently syncing. Parameter is sync percentage -->
     <string name="device_syncing">Synchronisation (%1$d%%)</string>
-
     <!-- Indicates that there is no connection to the device -->
     <string name="device_disconnected">Déconnecté</string>
-
     <!-- Indicates that the device is paused and does not sync -->
     <string name="device_paused">En pause</string>
 
@@ -331,10 +330,6 @@ S\'il vous plaît, soumettez les problèmes que vous rencontrez via Github.</str
     <!-- Toast after entering invalid http proxy address -->
     <string name="toast_invalid_http_proxy_address">L\'entrée ne respecte pas la syntaxe du proxy \'http://[IP/HOSTNAME]:[PORT]\'</string>
 
-    <string name="restart_on_wakeup_title">Redémarrer en cas de réveil</string>
-
-    <string name="restart_on_wakeup_summary">Par défaut: Activé. La désactivation de cette fonction, pour économiser la batterie, peut entraîner des retards dans l\'analyse des partages et dans la reconnexion des appareils.</string>
-
     <!-- Dialog shown before config export -->
     <string name="dialog_confirm_export">Voulez-vous vraiment exporter votre configuration ? Les fichiers existants seront écrasés.\n\n ATTENTION ! D\'autres applications pourraient lire la clé privée située à l\'emplacement de sauvegarde et l\'utiliser pour télécharger/modifier les fichiers synchronisés.</string>
 
@@ -448,12 +443,14 @@ S\'il vous plaît, soumettez les problèmes que vous rencontrez via Github.</str
     <!-- Copy success toast partially -->
     <plurals name="copy_success_partially">
         <item quantity="one">%1$d fichier copié vers partage \"%2$s\", %3$d existe déjà</item>
+        <item quantity="many">%1$d fichiers copiés vers partage \"%2$s\", %3$d existent déjà</item>
         <item quantity="other">%1$d fichiers copiés vers partage \"%2$s\", %3$d existent déjà</item>
     </plurals>
 
     <!-- Copy success toast -->
     <plurals name="copy_success">
         <item quantity="one">%1$d fichier copié vers partage \"%2$s\"</item>
+        <item quantity="many">%1$d fichiers copiés vers partage \"%2$s\"</item>
         <item quantity="other">%1$d fichiers copiés vers partage \"%2$s\"</item>
     </plurals>
 
@@ -465,6 +462,7 @@ S\'il vous plaît, soumettez les problèmes que vous rencontrez via Github.</str
 
     <plurals name="file_name_title">
         <item quantity="one">Nom du fichier</item>
+        <item quantity="many">Liste des fichiers</item>
         <item quantity="other">Liste des fichiers</item>
     </plurals>
 
@@ -510,19 +508,11 @@ S\'il vous plaît, soumettez les problèmes que vous rencontrez via Github.</str
     <!-- Strings representing units for file sizes, from smallest to largest -->
     <string-array name="file_size_units">
         <item>o</item>
-        <item>Ko</item>
-        <item>Mo</item>
-        <item>Go</item>
-        <item>To</item>
     </string-array>
 
     <!-- Strings representing units for transfer rates, from smallest to largest -->
     <string-array name="transfer_rate_units">
         <item>Octets/s</item>
-        <item>Ko/s</item>
-        <item>Mo/s</item>
-        <item>Go/s</item>
-        <item>To/s</item>
     </string-array>
 
     <string name="state_up_to_date">à jour</string>

@@ -198,9 +198,11 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
 
     <!-- Indicates that the device is currently syncing. Parameter is sync percentage -->
     <string name="device_syncing">Synchronisiere (%1$d%%)</string>
+    <string name="device_syncing_percent_bytes">Synchronisiere (%1$d%%, %2$s)</string>
 
     <!-- Indicates that there is no connection to the device -->
     <string name="device_disconnected">Getrennt</string>
+    <string name="device_disconnected_not_synced">Getrennt (%1$s ausstehend)</string>
 
     <!-- Indicates that the device is paused and does not sync -->
     <string name="device_paused">Pausiert</string>
@@ -544,7 +546,10 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <string name="run_in_flight_mode_summary">Durch Aktivieren der Option wird Syncthing auch dann laufen, wenn Du offline bist. Aktiviere dies, wenn dein Telefon Probleme beim Erkennen von manuell hergestellten WLAN-Verbindungen im Flugmodus hat.</string>
 
     <string name="run_on_time_schedule_title">Gemäß Zeitplan synchronisieren</string>
-    <string name="run_on_time_schedule_summary">Durch Aktivieren dieser Option wird versucht, stündlich für 5 Minuten zu synchronisieren, wenn die Laufkonditionen zutreffen und der letzte Sync nicht länger als 1 Stunde her war. Dies kann eine Menge Batterie einsparen, erfordert jedoch, dass Synchronisierungspartner online sind. Hinweis: Dies kann unvollständige temporäre Dateien zurücklassen, bis die nächste geplante Synchronisierung stattfindet und abgeschlossen ist.</string>
+    <string name="run_on_time_schedule_summary">Durch Aktivieren dieser Option wird versucht, stündlich für eine konfigurierte Dauer zu synchronisieren, wenn die Laufkonditionen zutreffen und der letzte Sync nicht länger als 1 Stunde her war. Dies kann eine Menge Batterie einsparen, erfordert jedoch, dass Synchronisierungspartner online sind. Hinweis: Dies kann unvollständige temporäre Dateien zurücklassen, bis die nächste geplante Synchronisierung stattfindet und abgeschlossen ist.</string>
+
+    <string name="sync_duration_minutes_title">Dauer des Sync-Zyklus</string>
+    <string name="sync_duration_minutes_summary">%1$s Minuten</string>
 
     <!-- Preferences - Behaviour -->
     <string name="behaviour_autostart_title">Autostart</string>
@@ -667,10 +672,6 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <string name="broadcast_service_control_title">Dienstkontrolle über Broadcast</string>
 
     <string name="broadcast_service_control_summary">Standard: Deaktiviert. Aktiviere diese Option, um den Dienst durch Broadcasts z. B. mit Drittanbieter Automatisierungsapps zu starten und zu stoppen. Hinweis: Nach dem Ändern dieser Option musst du die App manuell neu starten.</string>
-
-    <string name="restart_on_wakeup_title">Neustart nach Aufwachen</string>
-
-    <string name="restart_on_wakeup_summary">Standard: Aktiviert. Das Deaktivieren dieser Funktion kann verzögertes Ordner-Scannen und Wiederverbinden von Geräten zur Folge haben. Dafür spart es Akku.</string>
 
     <!-- Dialog shown before config export -->
     <string name="dialog_confirm_export">Soll die Konfiguration wirklich exportiert werden? Vorhandene Dateien werden überschrieben.\n\nACHTUNG! Andere Anwendungen können möglicherweise den privaten Schlüssel im Backupverzeichnis lesen und dazu verwenden, um synchronisierte Dateien herunterzuladen und zu verändern.</string>
@@ -962,19 +963,19 @@ Bitte melden Sie auftretende Probleme via GitHub.</string>
     <!-- Strings representing units for file sizes, from smallest to largest -->
     <string-array name="file_size_units">
         <item>B</item>
-        <item>KiB</item>
-        <item>MiB</item>
-        <item>GiB</item>
-        <item>TiB</item>
+        <item>KB</item>
+        <item>MB</item>
+        <item>GB</item>
+        <item>TB</item>
     </string-array>
 
     <!-- Strings representing units for transfer rates, from smallest to largest -->
     <string-array name="transfer_rate_units">
         <item>B/s</item>
-        <item>Kb/s</item>
-        <item>Mb/s</item>
-        <item>Gb/s</item>
-        <item>Tb/s</item>
+        <item>KB/s</item>
+        <item>MB/s</item>
+        <item>GB/s</item>
+        <item>TB/s</item>
     </string-array>
 
     <!-- Possible folder states -->

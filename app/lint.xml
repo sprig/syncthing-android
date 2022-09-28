@@ -57,6 +57,9 @@
     <!-- Ignore lint on ... not being replaced by the ellipsis character -->
     <issue id="TypographyEllipsis" severity="ignore" />
     <!-- Don't fail lint on translation errors, they have to be resolved on transifex -->
+    <issue id="MissingQuantity" severity="warning">
+        <ignore path="src/main/res/values-fr" />
+    </issue>
     <issue id="ImpliedQuantity" severity="warning">
         <ignore path="src/main/res/values-fr" />
         <ignore path="src/main/res/values-pt-rBR" />
@@ -91,5 +94,11 @@
         <ignore path="src/main/res/layout/fragment_simple_versioning.xml" />
         <ignore path="src/main/res/layout/fragment_staggered_versioning.xml" />
         <ignore path="src/main/res/layout/fragment_trashcan_versioning.xml" />
+    </issue>
+    <!-- Ignore long vector paths -->
+    <issue id="VectorPath" severity="ignore" />
+    <!-- Skip proceed onReceivedSslError -->
+    <issue id="WebViewClientOnReceivedSslError" severity="ignore">
+        <ignore path="src/main/java/com/nutomic/syncthingandroid/activities/WebViewActivity.java" />
     </issue>
 </lint>

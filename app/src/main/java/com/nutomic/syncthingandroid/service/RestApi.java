@@ -22,6 +22,7 @@ import com.nutomic.syncthingandroid.activities.ShareActivity;
 import com.nutomic.syncthingandroid.http.GetRequest;
 import com.nutomic.syncthingandroid.http.PostRequest;
 import com.nutomic.syncthingandroid.model.CachedFolderStatus;
+import com.nutomic.syncthingandroid.model.CompletionInfo;
 import com.nutomic.syncthingandroid.model.Config;
 import com.nutomic.syncthingandroid.model.Connection;
 import com.nutomic.syncthingandroid.model.Connections;
@@ -42,6 +43,7 @@ import com.nutomic.syncthingandroid.model.PendingFolder;
 import com.nutomic.syncthingandroid.model.RemoteCompletion;
 import com.nutomic.syncthingandroid.model.RemoteCompletionInfo;
 import com.nutomic.syncthingandroid.model.RemoteIgnoredDevice;
+import com.nutomic.syncthingandroid.model.SharedWithDevice;
 import com.nutomic.syncthingandroid.model.SystemStatus;
 import com.nutomic.syncthingandroid.model.SystemVersion;
 import com.nutomic.syncthingandroid.service.Constants;
@@ -338,6 +340,33 @@ public class RestApi {
 
         // Perform first query for remote device status by forcing a cache miss.
         getRemoteDeviceStatus("");
+
+        for (Folder folder : tmpFolders) {
+            final List<SharedWithDevice> sharedWithDevices = folder.getSharedWithDevices();
+            for (SharedWithDevice device : sharedWithDevices) {
+                new GetRequest(mContext,
+                        mUrl,
+                        GetRequest.URI_DB_COMPLETION,
+                        mApiKey,
+                        ImmutableMap.of(
+                                "device", device.deviceID,
+                                "folder", folder.id
+                        ),
+                        result -> {
+                    // LogV("ORCC: /rest/db/completion: folder=" + folder.id + ", device=" + device.deviceID + ", result=" + result);
+                    final CompletionInfo completionInfo = mGson.fromJson(result, CompletionInfo.class);
+                    LogV("ORCC: /rest/db/completion: folder=" + folder.id +
+                            ", device=" + device.deviceID +
+                            ", completion=" + completionInfo.completion +
+                            ", needBytes=" + String.format("%.0f", completionInfo.needBytes) +
+                            ", remoteState=" + completionInfo.remoteState);
+                    RemoteCompletionInfo remoteCompletionInfo = new RemoteCompletionInfo();
+                    remoteCompletionInfo.completion = completionInfo.completion;
+                    remoteCompletionInfo.needBytes = completionInfo.needBytes;
+                    mRemoteCompletion.setCompletionInfo(device.deviceID, folder.id, remoteCompletionInfo);
+                }, error -> {});
+            }
+        }
     }
 
     /**
@@ -845,6 +874,11 @@ public class RestApi {
         return mRemoteCompletion.getDeviceCompletion(deviceId);
     }
 
+    public final double getRemoteDeviceNeedBytes(
+            final String deviceId) {
+        return mRemoteCompletion.getDeviceNeedBytes(deviceId);
+    }
+
     public final Connection getTotalConnectionStatistic() {
         if (!mPreviousConnections.isPresent()) {
             return new Connection();
@@ -1057,6 +1091,7 @@ public class RestApi {
 
     public void setRemoteCompletionInfo(final String deviceId,
                                             final String folderId,
+                                            final Double needBytes,
                                             final Double completion) {
         final Folder folder = getFolderByID(folderId);
         if (folder == null) {
@@ -1075,8 +1110,10 @@ public class RestApi {
             LogV("setRemoteCompletionInfo: Paused folder \"" + folderId + "\" - got " +
                     remoteCompletionInfo.completion + "%, passing on 100%");
             remoteCompletionInfo.completion = 100;
+            remoteCompletionInfo.needBytes = 0;
         } else {
             remoteCompletionInfo.completion = completion;
+            remoteCompletionInfo.needBytes = needBytes;
         }
         mRemoteCompletion.setCompletionInfo(deviceId, folderId, remoteCompletionInfo);
         onTotalSyncCompletionChange();

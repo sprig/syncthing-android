@@ -124,10 +124,8 @@
 
     <!-- Indicates that the device is currently syncing. Parameter is sync percentage -->
     <string name="device_syncing">Synkroniserar (%1$d%%)</string>
-
     <!-- Indicates that there is no connection to the device -->
     <string name="device_disconnected">Frånkopplad</string>
-
     <!-- Indicates that the device is paused and does not sync -->
     <string name="device_paused">Pausad</string>
 
@@ -469,10 +467,6 @@
     <!-- Toast after entering invalid http proxy address -->
     <string name="toast_invalid_http_proxy_address">Inmatning bryter mot proxysyntaxen \'http://[IP/HOSTNAME]:[PORT]\'</string>
 
-    <string name="restart_on_wakeup_title">Starta om på Vakna upp</string>
-
-    <string name="restart_on_wakeup_summary">Standard: Aktiverad. Om du inaktiverar den här funktionen kan det resultera i försenade mappsökningar och återkopplingar av enheter för att spara batteri.</string>
-
     <!-- Dialog shown before config export -->
     <string name="dialog_confirm_export">Vill du verkligen exportera din konfiguration? Befintliga filer kommer att skrivas över.\n\nVARNING! Andra appar kan få möjlighet att läsa den privata nyckeln från säkerhetskopian och använda den för att hämta/ändra synkroniserade filer.</string>
 
@@ -676,19 +670,11 @@
     <!-- Strings representing units for file sizes, from smallest to largest -->
     <string-array name="file_size_units">
         <item>B</item>
-        <item>KiB</item>
-        <item>MiB</item>
-        <item>GiB</item>
-        <item>TiB</item>
     </string-array>
 
     <!-- Strings representing units for transfer rates, from smallest to largest -->
     <string-array name="transfer_rate_units">
         <item>B/s</item>
-        <item>KiB/s</item>
-        <item>MiB/s</item>
-        <item>GiB/s</item>
-        <item>TiB/s</item>
     </string-array>
 
     <string name="state_scanning">Skannar</string>

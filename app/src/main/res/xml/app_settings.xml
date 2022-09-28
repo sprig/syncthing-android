@@ -99,6 +99,14 @@
             android:singleLineTitle="false"
             android:defaultValue="false" />
 
+        <EditTextPreference
+            android:key="sync_duration_minutes"
+            android:title="@string/sync_duration_minutes_title"
+            android:summary="@string/sync_duration_minutes_summary"
+            android:singleLineTitle="false"
+            android:inputType="number"
+            android:defaultValue="5" />
+
     </PreferenceScreen>
 
     <PreferenceScreen
@@ -121,13 +129,6 @@
             android:summary="@string/expert_mode_summary"
             android:singleLineTitle="false"
             android:defaultValue="false" />
-
-        <!-- Language -->
-        <ListPreference
-            android:key="pref_current_language"
-            android:title="@string/preference_language_title"
-            android:summary="@string/preference_language_summary"
-            android:singleLineTitle="false" />
 
     </PreferenceScreen>
 
@@ -237,13 +238,6 @@
             android:key="syncthing_api_key"
             android:title="@string/syncthing_api_key"
             android:singleLineTitle="false" />
-
-        <CheckBoxPreference
-            android:key="restartOnWakeup"
-            android:title="@string/restart_on_wakeup_title"
-            android:summary="@string/restart_on_wakeup_summary"
-            android:singleLineTitle="false"
-            android:defaultValue="false" />
 
         <CheckBoxPreference
             android:key="urAccepted"

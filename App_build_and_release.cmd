@@ -38,7 +38,7 @@ REM
 echo [INFO] Let's prepare a new "%SYNCTHING_RELEASE_KEY_ALIAS%" release.
 REM
 echo [INFO] Checking release prerequisites ...
-IF NOT EXIST "%ANDROID_PUBLISHER_CREDENTIALS%" echo [ERROR] ANDROID_PUBLISHER_CREDENTIALS file not found. Please retry. & goto :checkPrerequisites
+IF NOT EXIST "%ANDROID_PUBLISHER_CREDENTIALS%" echo [ERROR] ANDROID_PUBLISHER_CREDENTIALS file not found. Please retry. & pause & goto :checkPrerequisites
 FOR /F "tokens=*" %%i in ('type "%ANDROID_PUBLISHER_CREDENTIALS%" 2^>NUL:') DO SET ANDROID_PUBLISHER_CREDENTIALS=%%i
 REM
 REM User has to enter the signing password if it is not filled in here.
@@ -54,6 +54,8 @@ setlocal EnableDelayedExpansion
 IF NOT DEFINED SIGNING_PASSWORD echo [ERROR] Signing password is required. Please retry. & goto :enterSigningPassword
 REM
 :absLint
+REM
+copy /y "%SCRIPT_PATH%app\src\main\play\release-notes\en-GB\beta.txt" "%SCRIPT_PATH%app\src\main\play\release-notes\en-GB\default.txt" 
 REM
 echo [INFO] Running lint before building ...
 IF "%SKIP_RELEASE_BUILD%" == "1" call gradlew --quiet lintDebug & SET RESULT=%ERRORLEVEL%
