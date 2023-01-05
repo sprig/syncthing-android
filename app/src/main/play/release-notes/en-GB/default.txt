@@ -1,10 +1,13 @@
-* Syncthing v1.21.0
+* Syncthing v1.23.0
 
 Enhanced
 --
-- App is removed from recents after exit
-
+-
 
 Fixes
+--
+-
+
+Other
 --
 -

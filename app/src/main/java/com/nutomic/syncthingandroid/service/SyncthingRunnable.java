@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.os.Build;
@@ -17,7 +19,6 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
-import com.nutomic.syncthingandroid.service.Constants;
 import com.nutomic.syncthingandroid.util.FileUtils;
 import com.nutomic.syncthingandroid.util.Util;
 
@@ -57,6 +58,7 @@ public class SyncthingRunnable implements Runnable {
     private static final String TAG_NICE = "SyncthingRunnableIoNice";
 
     private Boolean ENABLE_VERBOSE_LOG = false;
+    private Boolean LOG_TO_FILE = false;
     private static final int LOG_FILE_MAX_LINES = 10;
 
     private static final AtomicReference<Process> mSyncthing = new AtomicReference<>();
@@ -88,6 +90,7 @@ public class SyncthingRunnable implements Runnable {
     public SyncthingRunnable(Context context, Command command) {
         ((SyncthingApp) context.getApplicationContext()).component().inject(this);
         ENABLE_VERBOSE_LOG = AppPrefs.getPrefVerboseLog(mPreferences);
+        LOG_TO_FILE = mPreferences.getBoolean(Constants.PREF_LOG_TO_FILE, false);
         mContext = context;
         // Example: mSyncthingBinary="/data/app/com.github.catfriend1.syncthingandroid.debug-8HsN-IsVtZXc8GrE5-Hepw==/lib/x86/libsyncthingnative.so"
         mSyncthingBinary = Constants.getSyncthingBinary(mContext);
@@ -119,9 +122,49 @@ public class SyncthingRunnable implements Runnable {
     @Override
     public void run() {
         try {
+            bindNetwork();
             run(false);
+            clearBindNetwork();
         } catch (ExecutableNotFoundException e) {
             throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    /**
+     * Avoid the following two situations:
+     * 1. Fake WiFi: User wants only syncing via WiFi, but connects to a WiFi without internet connection,
+     *    Android will auto route the request through the mobile network.
+     * 2. User only wants to sync through mobile network, but not use WiFi.
+     */
+    private void bindNetwork() {
+        clearBindNetwork();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return;
+        }
+        boolean bindNetwork = mPreferences.getBoolean(Constants.PREF_BIND_NETWORK, true);
+        if (!bindNetwork) {
+            return;
+        }
+        boolean runOnWifi = mPreferences.getBoolean(Constants.PREF_RUN_ON_WIFI, true);
+        boolean runOnMobileData = mPreferences.getBoolean(Constants.PREF_RUN_ON_MOBILE_DATA, true);
+        if ((runOnWifi && !runOnMobileData) || (!runOnWifi && runOnMobileData)) {
+            ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+            Network network = cm.getActiveNetwork();
+            cm.bindProcessToNetwork(network);
+        }
+    }
+
+    private void clearBindNetwork() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return;
+        }
+        boolean bindNetwork = mPreferences.getBoolean(Constants.PREF_BIND_NETWORK, true);
+        if (!bindNetwork) {
+            return;
+        }
+        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm.getBoundNetworkForProcess() != null) {
+            cm.bindProcessToNetwork(null);
         }
     }
 
@@ -156,8 +199,8 @@ public class SyncthingRunnable implements Runnable {
              * Since gradle 4.6, wakelock tags have to obey "app:component" naming convention.
              */
             wakeLock = pm.newWakeLock(
-                PowerManager.PARTIAL_WAKE_LOCK,
-                mContext.getString(R.string.app_name) + ":" + TAG
+                    PowerManager.PARTIAL_WAKE_LOCK,
+                    mContext.getString(R.string.app_name) + ":" + TAG
             );
         }
 
@@ -201,8 +244,8 @@ public class SyncthingRunnable implements Runnable {
                         br.close();
                 }
             } else {
-                lInfo = log(process.getInputStream(), Log.INFO, true);
-                lWarn = log(process.getErrorStream(), Log.WARN, true);
+                lInfo = log(process.getInputStream(), Log.INFO, LOG_TO_FILE);
+                lWarn = log(process.getErrorStream(), Log.WARN, LOG_TO_FILE);
             }
 
             niceSyncthing();
@@ -404,6 +447,7 @@ public class SyncthingRunnable implements Runnable {
             SystemClock.sleep(50);
         }
         Log.d(TAG, "killSyncthing: Complete.");
+        clearBindNetwork();
     }
 
     /**

@@ -25,7 +25,6 @@
     <string name="storage_permission_title">ストレージアクセス許可</string>
     <string name="storage_permission_desc">Syncthing はファイル同期を行うためにストレージにアクセスする必要があります。</string>
     <string name="dialog_all_files_access_not_supported">お使いのデバイスがすべてのファイルへのアクセスをサポートしていません</string>
-    <string name="storage_permission_emergency_export">動かなくなった？設定を緊急エクスポート</string>
 
     <!-- Slide "Ignore battery optimizations" -->
     <string name="ignore_doze_permission_title">バッテリー最適化</string>
@@ -732,11 +731,19 @@
     <!-- Strings representing units for file sizes, from smallest to largest -->
     <string-array name="file_size_units">
         <item>B</item>
+        <item>KiB</item>
+        <item>MiB</item>
+        <item>GiB</item>
+        <item>TiB</item>
     </string-array>
 
     <!-- Strings representing units for transfer rates, from smallest to largest -->
     <string-array name="transfer_rate_units">
         <item>B/s</item>
+        <item>KiB/s</item>
+        <item>MiB/s</item>
+        <item>GiB/s</item>
+        <item>TiB/s</item>
     </string-array>
 
     <string name="state_up_to_date">最新化</string>
