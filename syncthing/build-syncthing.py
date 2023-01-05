@@ -14,39 +14,45 @@ import platform
 PLATFORM_DIRS = {
     'Windows': 'windows-x86_64',
     'Linux': 'linux-x86_64',
-    'Darwin': 'darwin-x86-64',
+    'Darwin': 'darwin-x86_64',
 }
 
 # Leave empty to auto-detect version by 'git describe'.
 FORCE_DISPLAY_SYNCTHING_VERSION = ''
 FILENAME_SYNCTHING_BINARY = 'libsyncthingnative.so'
 
-GO_VERSION = '1.18.1'
-GO_EXPECTED_SHASUM_LINUX = 'b3b815f47ababac13810fc6021eb73d65478e0b2db4b09d348eefad9581a2334'
-GO_EXPECTED_SHASUM_WINDOWS = 'c30bc3f1f7314a953fe208bd9cd5e24bd9403392a6c556ced3677f9f70f71fe1'
+GO_VERSION = '1.19.4'
+GO_EXPECTED_SHASUM_LINUX = 'c9c08f783325c4cf840a94333159cc937f05f75d36a8b307951d5bd959cf2ab8'
+GO_EXPECTED_SHASUM_WINDOWS = 'ada490e188bfb57c7388da7c5eba7565390992b6496204d30e710d37755956b0'
 
-NDK_VERSION = 'r24'
-NDK_EXPECTED_SHASUM_LINUX = 'eceb18f147282eb93615eff1ad84a9d3962fbb31'
-NDK_EXPECTED_SHASUM_WINDOWS = '75f9c281c64762d18c84da465f486c60def47829'
+NDK_VERSION = 'r25b'
+NDK_EXPECTED_SHASUM_LINUX = 'e27dcb9c8bcaa77b78ff68c3f23abcf6867959eb'
+NDK_EXPECTED_SHASUM_WINDOWS = 'b2e9b5ab2e1434a65ffd85780891878cf5c6fd92'
 
 BUILD_TARGETS = [
     {
         'arch': 'arm',
         'goarch': 'arm',
         'jni_dir': 'armeabi',
-        'clang': 'armv7a-linux-androideabi19-clang',
+        'cc': 'armv7a-linux-androideabi{}-clang',
     },
     {
         'arch': 'arm64',
         'goarch': 'arm64',
         'jni_dir': 'arm64-v8a',
-        'clang': 'aarch64-linux-android21-clang',
+        'cc': 'aarch64-linux-android{}-clang',
     },
     {
         'arch': 'x86',
         'goarch': '386',
         'jni_dir': 'x86',
-        'clang': 'i686-linux-android19-clang',
+        'cc': 'i686-linux-android{}-clang',
+    },
+    {
+        'arch': 'x86_64',
+        'goarch': 'amd64',
+        'jni_dir': 'x86_64',
+        'cc': 'x86_64-linux-android{}-clang',
     }
 ]
 
@@ -297,6 +303,7 @@ module_dir = os.path.dirname(os.path.realpath(__file__))
 project_dir = os.path.realpath(os.path.join(module_dir, '..'))
 syncthing_dir = os.path.join(module_dir, 'src', 'github.com', 'syncthing', 'syncthing')
 prerequisite_tools_dir = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + ".." + os.path.sep + ".." + os.path.sep + "syncthing-android-prereq"
+min_sdk = get_min_sdk(project_dir)
 
 # Check if git is available.
 git_bin = which("git");
@@ -360,14 +367,14 @@ for target in BUILD_TARGETS:
     print('')
     print('*** Building for', target['arch'])
 
-    ndk_clang_fullfn = os.path.join(
+    cc = os.path.join(
         os.environ['ANDROID_NDK_HOME'],
         'toolchains',
         'llvm',
         'prebuilt',
         PLATFORM_DIRS[platform.system()],
         'bin',
-        target['clang'],
+        target['cc'].format(min_sdk),
     )
 
     environ = os.environ.copy()
@@ -379,8 +386,9 @@ for target in BUILD_TARGETS:
 
     subprocess.check_call([go_bin, 'mod', 'download'], cwd=syncthing_dir)
     subprocess.check_call([
-                              go_bin, 'run', 'build.go', '-goos', 'android', '-goarch', target['goarch'],
-                              '-cc', ndk_clang_fullfn,
+                              go_bin, 'run', 'build.go', '-goos', 'android',
+                              '-goarch', target['goarch'],
+                              '-cc', cc,
                               '-version', syncthingVersion
                           ] + ['-no-upgrade', 'build'], env=environ, cwd=syncthing_dir)
 
@@ -397,12 +405,5 @@ for target in BUILD_TARGETS:
     os.rename(os.path.join(syncthing_dir, 'syncthing'), target_artifact)
 
     print('*** Finished build for', target['arch'])
-
-print('Copy x86 artifact to x86_64 folder, workaround for issue #583')
-target_dir = os.path.join(project_dir, 'app', 'src', 'main', 'jniLibs', 'x86_64')
-if not os.path.isdir(target_dir):
-    os.makedirs(target_dir)
-shutil.copy(os.path.join(project_dir, 'app', 'src', 'main', 'jniLibs', 'x86', FILENAME_SYNCTHING_BINARY),
-        os.path.join(target_dir, FILENAME_SYNCTHING_BINARY))
 
 print('All builds finished')
