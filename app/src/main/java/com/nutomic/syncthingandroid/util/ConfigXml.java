@@ -800,6 +800,7 @@ public class ConfigXml {
             device.autoAcceptFolders = getContentOrDefault(r.getElementsByTagName("autoAcceptFolders").item(0), device.autoAcceptFolders);
             device.paused = getContentOrDefault(r.getElementsByTagName("paused").item(0), device.paused);
             device.untrusted = getContentOrDefault(r.getElementsByTagName("untrusted").item(0), device.untrusted);
+            device.numConnections = getContentOrDefault(r.getElementsByTagName("numConnections").item(0), device.numConnections);
 
             // Addresses
             /*
@@ -814,6 +815,21 @@ public class ConfigXml {
                 String address = getContentOrDefault(nodeAddresses.item(j), "");
                 device.addresses.add(address);
                 // LogV("getDevices: address=" + address);
+            }
+
+            // Allowed Networks
+            /*
+            <device ...>
+                <allowedNetwork>192.168.0.0/24</allowedNetwork>
+                <allowedNetwork>192.168.1.0/24</allowedNetwork>
+            </device>
+            */
+            device.allowedNetworks = new ArrayList<>();
+            NodeList nodeAllowedNetworks = r.getElementsByTagName("allowedNetwork");
+            for (int j = 0; j < nodeAllowedNetworks.getLength(); j++) {
+                String allowedNetwork = getContentOrDefault(nodeAllowedNetworks.item(j), "");
+                device.allowedNetworks.add(allowedNetwork);
+                // LogV("getDevices: allowedNetwork=" + allowedNetwork);
             }
 
             // ignoredFolders
@@ -889,6 +905,7 @@ public class ConfigXml {
                     setConfigElement(r, "autoAcceptFolders", Boolean.toString(device.autoAcceptFolders));
                     setConfigElement(r, "paused", Boolean.toString(device.paused));
                     setConfigElement(r, "untrusted", Boolean.toString(device.untrusted));
+                    setConfigElement(r, "numConnections", Integer.toString(device.numConnections));
 
                     // Addresses
                     // Pass 1: Remove all addresses in XML.
@@ -907,6 +924,26 @@ public class ConfigXml {
                             r.appendChild(nodeAddress);
                             Element elementAddress = (Element) nodeAddress;
                             elementAddress.setTextContent(address);
+                        }
+                    }
+
+                    // Allowed Networks
+                    // Pass 1: Remove all allowed networks in XML.
+                    NodeList nodeAllowedNetworks = r.getElementsByTagName("allowedNetwork");
+                    for (int j = nodeAllowedNetworks.getLength() - 1; j >= 0; j--) {
+                        Element elementAllowedNetwork = (Element) nodeAllowedNetworks.item(j);
+                        Log.d(TAG, "updateDevice: nodeAllowedNetworks: Removing allowedNetwork=" + getContentOrDefault(elementAllowedNetwork, ""));
+                        removeChildElementFromTextNode(r, elementAllowedNetwork);
+                    }
+
+                    // Pass 2: Add allowed networks from the POJO model.
+                    if (device.allowedNetworks != null) {
+                        for (String allowedNetwork : device.allowedNetworks) {
+                            Log.d(TAG, "updateDevice: nodeAllowedNetworks: Adding allowedNetwork=" + allowedNetwork);
+                            Node nodeAllowedNetwork = mConfig.createElement("allowedNetwork");
+                            r.appendChild(nodeAllowedNetwork);
+                            Element elementAllowedNetwork = (Element) nodeAllowedNetwork;
+                            elementAllowedNetwork.setTextContent(allowedNetwork);
                         }
                     }
 
