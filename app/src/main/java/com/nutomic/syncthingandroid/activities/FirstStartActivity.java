@@ -2,6 +2,7 @@ package com.nutomic.syncthingandroid.activities;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
@@ -83,6 +84,7 @@ public class FirstStartActivity extends AppCompatActivity {
     private int mSlidePosStoragePermission = -1;
     private int mSlidePosIgnoreDozePermission = -1;
     private int mSlideLocationPermission = -1;
+    private int mSlideNotificationPermission = -1;
     private int mSlidePosKeyGeneration = -1;
 
     private CustomViewPager mViewPager;
@@ -96,6 +98,7 @@ public class FirstStartActivity extends AppCompatActivity {
     SharedPreferences mPreferences;
 
     private Boolean mRunningOnTV = false;
+    private Boolean mUserDecisionIgnoreDozePermission = false;
 
     /**
      * Handles activity behaviour depending on prerequisites.
@@ -116,6 +119,7 @@ public class FirstStartActivity extends AppCompatActivity {
         Boolean showSlideStoragePermission = !PermissionUtil.haveStoragePermission(FirstStartActivity.this);
         Boolean showSlideIgnoreDozePermission = !haveIgnoreDozePermission();
         Boolean showSlideLocationPermission = !haveLocationPermission();
+        Boolean showSlideNotificationPermission = !haveNotificationPermission();
         Boolean showSlideKeyGeneration = !checkForParseableConfig();
 
         /**
@@ -123,7 +127,7 @@ public class FirstStartActivity extends AppCompatActivity {
          * start directly into MainActivity.
          */
         if (!showSlideStoragePermission &&
-                !showSlideIgnoreDozePermission &&
+                !showSlideNotificationPermission &&
                 !showSlideKeyGeneration) {
             startApp();
             return;
@@ -138,6 +142,9 @@ public class FirstStartActivity extends AppCompatActivity {
         }
         if (showSlideLocationPermission) {
             Log.d(TAG, "We (no longer?) have location permission and will politely ask for it.");
+        }
+        if (showSlideNotificationPermission) {
+            Log.d(TAG, "We (no longer?) have notification permission and will politely ask for it.");
         }
         if (showSlideKeyGeneration) {
             Log.d(TAG, "We (no longer?) have a valid Syncthing config and will attempt to generate a fresh config.");
@@ -167,6 +174,7 @@ public class FirstStartActivity extends AppCompatActivity {
                         (showSlideStoragePermission ? 1 : 0) +
                         (showSlideIgnoreDozePermission ? 1 : 0) +
                         (showSlideLocationPermission ? 1 : 0) +
+                        (showSlideNotificationPermission ? 1 : 0) +
                         (showSlideKeyGeneration ? 1 : 0)
                 ];
         mSlides[slideIndex++] = new Slide(R.layout.activity_firststart_intro, colorsActive[0], colorsInactive[0]);
@@ -181,6 +189,10 @@ public class FirstStartActivity extends AppCompatActivity {
         if (showSlideLocationPermission) {
             mSlideLocationPermission = slideIndex;
             mSlides[slideIndex++] = new Slide(R.layout.activity_firststart_location_permission, colorsActive[2], colorsInactive[2]);
+        }
+        if (showSlideNotificationPermission) {
+            mSlideNotificationPermission = slideIndex;
+            mSlides[slideIndex++] = new Slide(R.layout.activity_firststart_notification_permission, colorsActive[0], colorsInactive[0]);
         }
         if (showSlideKeyGeneration) {
             mSlidePosKeyGeneration = slideIndex;
@@ -243,6 +255,7 @@ public class FirstStartActivity extends AppCompatActivity {
             return;
         }
         if (mViewPager.getCurrentItem() == mSlidePosStoragePermission ||
+                mViewPager.getCurrentItem() == mSlideNotificationPermission ||
                 mViewPager.getCurrentItem() == mSlidePosIgnoreDozePermission) {
             mNextButton.performClick();
         }
@@ -277,16 +290,34 @@ public class FirstStartActivity extends AppCompatActivity {
         if (mViewPager.getCurrentItem() == mSlidePosIgnoreDozePermission) {
             // As the ignore doze permission is a prerequisite to run syncthing, refuse to continue without it.
             if (!haveIgnoreDozePermission()) {
-                Toast.makeText(this, R.string.toast_ignore_doze_permission_required,
-                        Toast.LENGTH_LONG).show();
                 /**
-                 * a) Phones, tablets: The ignore doze permission is mandatory.
+                 * a) Phones, tablets: The ignore doze permission is recommended.
                  * b) TVs: The ignore doze permission is optional as it can only set by ADB on Android 8+.
                  */
-                if (!mRunningOnTV) {
+                if (!mUserDecisionIgnoreDozePermission && !mRunningOnTV) {
+                    new AlertDialog.Builder(FirstStartActivity.this)
+                            .setMessage(R.string.dialog_confirm_skip_ignore_doze_permission)
+                            .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                                    mUserDecisionIgnoreDozePermission = true;
+                                    onBtnNextClick();
+                            })
+                            .setNegativeButton(android.R.string.no, (dialog, which) -> {
+                                    mUserDecisionIgnoreDozePermission = false;
+                            })
+                            .show();
+
                     // Case a) - Prevent user moving on with the slides.
                     return;
                 }
+            }
+        }
+
+        if (mViewPager.getCurrentItem() == mSlideNotificationPermission) {
+            // As the notification permission is a prerequisite to run the syncthing service permanently, refuse to continue without it.
+            if (!haveNotificationPermission()) {
+                Toast.makeText(this, R.string.toast_notification_permission_required,
+                        Toast.LENGTH_LONG).show();
+                return;
             }
         }
 
@@ -398,7 +429,6 @@ public class FirstStartActivity extends AppCompatActivity {
                 btnGrantStoragePerm.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        requestNotificationPermission();
                         PermissionUtil.requestStoragePermission(FirstStartActivity.this, REQUEST_WRITE_STORAGE);
                     }
                 });
@@ -422,6 +452,17 @@ public class FirstStartActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         requestLocationPermission();
+                    }
+                });
+            }
+
+            /* Slide: notification permission */
+            Button btnGrantNotificationPerm = (Button) view.findViewById(R.id.btnGrantNotificationPerm);
+            if (btnGrantNotificationPerm != null) {
+                btnGrantNotificationPerm.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        requestNotificationPermission();
                     }
                 });
             }
@@ -531,6 +572,14 @@ public class FirstStartActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                 REQUEST_COARSE_LOCATION);
+    }
+
+    private boolean haveNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return true;
+        }
+        return ContextCompat.checkSelfPermission(this,
+                Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestNotificationPermission() {

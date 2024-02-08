@@ -1,1 +1,1 @@
-Wrapper for Syncthing - Open and decentralized file synchronization
+Invólucro para o Syncthing — Sincronização de ficheiros aberta e descentralizada
