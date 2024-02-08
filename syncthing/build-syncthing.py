@@ -21,13 +21,13 @@ PLATFORM_DIRS = {
 FORCE_DISPLAY_SYNCTHING_VERSION = ''
 FILENAME_SYNCTHING_BINARY = 'libsyncthingnative.so'
 
-GO_VERSION = '1.20.1'
-GO_EXPECTED_SHASUM_LINUX = '000a5b1fca4f75895f78befeb2eecf10bfff3c428597f3f1e69133b63b911b02'
-GO_EXPECTED_SHASUM_WINDOWS = '3b493969196a6de8d9762d09f5bc5ae7a3e5814b0cfbf9cc26838c2bc1314f9c'
+GO_VERSION = '1.21.4'
+GO_EXPECTED_SHASUM_LINUX = '73cac0215254d0c7d1241fa40837851f3b9a8a742d0b54714cbdfb3feaf8f0af'
+GO_EXPECTED_SHASUM_WINDOWS = '79e5428e068c912d9cfa6cd115c13549856ec689c1332eac17f5d6122e19d595'
 
-NDK_VERSION = 'r25b'
-NDK_EXPECTED_SHASUM_LINUX = 'e27dcb9c8bcaa77b78ff68c3f23abcf6867959eb'
-NDK_EXPECTED_SHASUM_WINDOWS = 'b2e9b5ab2e1434a65ffd85780891878cf5c6fd92'
+NDK_VERSION = 'r26b'
+NDK_EXPECTED_SHASUM_LINUX = 'fdf33d9f6c1b3f16e5459d53a82c7d2201edbcc4'
+NDK_EXPECTED_SHASUM_WINDOWS = '17453c61a59e848cffb8634f2c7b322417f1732e'
 
 BUILD_TARGETS = [
     {
@@ -223,6 +223,17 @@ def write_file(fullfn, text):
         hFile.write(text + '\n')
 
 
+def get_ndk_ready():
+    if os.environ.get('ANDROID_NDK_HOME', ''):
+        return
+    if not (os.environ.get('NDK_VERSION', '') and os.environ.get('ANDROID_SDK_ROOT', '')):
+        print('ANDROID_NDK_HOME env var is not defined. Then, NDK_VERSION and ANDROID_SDK_ROOT env vars must be defined.')
+        install_ndk()
+        return
+    os.environ["ANDROID_NDK_HOME"] = os.path.join(os.environ['ANDROID_SDK_ROOT'], 'ndk', os.environ['NDK_VERSION'])
+    return
+
+
 def install_ndk():
     import os
     import zipfile
@@ -327,13 +338,10 @@ if not go_bin:
         fail('Error: go is not available on the PATH.')
 print('go_bin=\'' + go_bin + '\'')
 
-# Check if ANDROID_NDK_HOME variable is set.
+# Check if "ANDROID_NDK_HOME" env var is set. If not, try to discover and set it.
+get_ndk_ready()
 if not os.environ.get('ANDROID_NDK_HOME', ''):
-    print('Warning: ANDROID_NDK_HOME environment variable not defined.')
-    install_ndk();
-    # Retry: Check if ANDROID_NDK_HOME variable is set.
-    if not os.environ.get('ANDROID_NDK_HOME', ''):
-        fail('Error: ANDROID_NDK_HOME environment variable not defined')
+    fail('Error: ANDROID_NDK_HOME environment variable not defined')
 print('ANDROID_NDK_HOME=\'' + os.environ.get('ANDROID_NDK_HOME', '') + '\'')
 
 # Make sure all tags are available for git describe
